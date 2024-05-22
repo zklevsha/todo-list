@@ -70,7 +70,7 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/
 Expected response:
 
 ```json
-`{"message":"This is the root endpoint."}` 
+{"message":"This is the root endpoint."} 
 ```
 ### Test Route
 
@@ -82,7 +82,7 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/test
 Expected response:
 
 ```json
-`{"message":"This is another test route."}` 
+{"message":"This is another test route."} 
 ```
 ### Test connection to the PostgreSQL server
 
@@ -94,7 +94,7 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/db_test_co
 Expected response:
 
 ```json
-`{"status":"success","message":"Successfully connected to the server."}` 
+{"status":"success","message":"Successfully connected to the server."} 
 ```
 ### Get current DB schema version
 This endpoint returns the current DB schema version (integer) for the database specified in the ".env" file.
