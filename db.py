@@ -1,22 +1,22 @@
 import psycopg2
-from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
-
-config = dotenv_values(".env")
-host = config.get('host')
-database = config.get('database')
-user = config.get('user')
-password = config.get('password')
-schema_version_table = "schema_version"
-connection_string = f"postgresql+psycopg2://{user}:{password}@{host}/{database}"
+from settings import connection_string
 
 engine = create_engine(connection_string)
+schema_version_table = "schema_version"
 
-def connect():
+def connect_test():
     try:
         with engine.connect() as connection:
             return {'status': 'success', 'message': 'Successfully connected to the server.'}
+    except SQLAlchemyError as error:
+        return {'status': 'error', 'message': str(error)}
+
+async def connect():
+    try:
+        connection = engine.connect()
+        return connection
     except SQLAlchemyError as error:
         return {'status': 'error', 'message': str(error)}
 

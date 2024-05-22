@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from db import connect, get_schema
+from db import connect, connect_test, get_schema
 
 app = FastAPI()
 
@@ -15,8 +15,8 @@ async def test_route():
 
 
 @app.get("/db_test_connection")
-async def connect_test():
-    result = connect()
+async def testing_connection():
+    result = connect_test()
     return result
 
 

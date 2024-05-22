@@ -2,6 +2,11 @@
 # FastAPI Application
 
 A basic FastAPI application set up with test endpoints interacting with a PostgreSQL database running on a docker container. 
+## Requirements
+
+* Python 3.6
+* Docker-compose
+* Curl
 
 ## Setup
 
@@ -10,8 +15,8 @@ A basic FastAPI application set up with test endpoints interacting with a Postgr
 To create and enter the virtual environment, run:
 
 ```bash
-python3 -m venv todo_list
-source todo_list/bin/activate 
+python3 -m venv .venv
+source .venv/bin/activate 
 ```
 ### Step 2: Install the dependencies
 
@@ -25,10 +30,10 @@ pip install -r requirements.txt
 Create a file ".env" with the following variables:
 
 ```bash
-host=HOST  
-database=DATABASE  
-user=DB_USER  
-password=USER_PASSWORD  
+db_host=HOST  
+db_name=DATABASE  
+db_user=DB_USER  
+db_password=USER_PASSWORD  
 ```
 
 ### Step 4: Start the PostgreSQL container
@@ -43,7 +48,14 @@ docker-compose up -d
 Run the FastAPI application using Uvicorn:
 
 ```bash
-uvicorn fast_api_test:app --reload
+uvicorn app:app --reload
+```
+### Step 6: Apply Database Migrations (Optional)
+
+When running the container for the first time, the migration script should be executed. You can also apply the migration scripts using the `psql` command:
+
+```bash
+psql -h localhost -U -d -f migrations/1.sql
 ```
 
 ## Endpoints

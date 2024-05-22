@@ -1,5 +1,7 @@
 -- 1.sql
 -- "todos" table
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS todos (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -15,3 +17,5 @@ CREATE TABLE IF NOT EXISTS schema_version (
 
 -- Setting schema version to 1
 INSERT INTO schema_version (version) VALUES (1);
+
+COMMIT;
