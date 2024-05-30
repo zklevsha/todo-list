@@ -1,42 +1,49 @@
 from fastapi import FastAPI, HTTPException
 from db import connect, connect_test, get_schema
-from typing import Dict
+from pydantic import BaseModel
 
 app = FastAPI()
 
+class BasicResponse(BaseModel):
+    message: str
+
+class ConnectionResponse(BaseModel):
+    status: str
+    message: str
+
 
 @app.get("/")
-async def root_test() -> Dict[str, str]:
+async def root_test() -> BasicResponse:
     """
     Root endpoint for testing the API.
     
     Returns:
-        Dict[str, str]: Simple test message.
+        BasicResponse: Simple test message.
     """
-    return {"message": "This is the root endpoint."}
+    return BasicResponse(message="This is the root endpoint.")
 
 
 @app.get("/test")
-async def test_route() -> Dict[str, str]:
+async def test_route() -> BasicResponse:
     """
     Another test route for the API.
     
     Returns:
-        Dict[str, str]: Another simple test message.
+        BasicResponse: Another simple test message.
     """
-    return {"message": "This is another test route."}
+    return BasicResponse(message="This is another test route.")
 
 
 @app.get("/db_test_connection")
-async def testing_connection() -> Dict[str, str]:
+async def testing_connection() -> ConnectionResponse:
     """
     Endpoint to test the DB connection.
     
     Returns:
-        Dict[str, str]: Indicates the success or failure of the connection.
+        ConnectionResponse: Indicates the success or failure of the connection (status and message).
     """
     result = connect_test()
-    return result
+    return ConnectionResponse(**result)
 
 
 @app.get("/db_schema_version")
