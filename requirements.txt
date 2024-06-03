@@ -1,0 +1,6 @@
+fastapi==0.83.0
+psycopg2==2.9.8
+pydantic==1.9.2
+python-dotenv==0.20.0
+SQLAlchemy==1.4.52
+uvicorn==0.16.0
