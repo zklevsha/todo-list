@@ -1,10 +1,24 @@
 import psycopg2
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, select, func, Table
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from settings import connection_string
 
 engine = create_engine(connection_string)
-schema_version_table = "schema_version"
+Base = declarative_base()
+
+class Todos(Base):
+    __tablename__ = "todos"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(String, index=True)
+    creation_date = Column(DateTime, default=func.now())
+    is_finished = Column(Boolean, default=False)
+
+    def __repr__(self) -> str:
+        return f"Todos(id={self.id!r}, title={self.title!r}, description={self.description!r}, creation_date={self.creation_date!r}, is_finished={self.is_finished!r})"
+
 
 def connect_test():
     try:
@@ -21,7 +35,8 @@ async def connect():
         return {'status': 'error', 'message': str(error)}
 
 def get_schema():
-    query = text(f"SELECT version FROM {schema_version_table};")
-    schema_v = engine.execute(query).fetchone()
-    result = int(schema_v[0])
-    return result
+    alembic_table = Table('alembic_version', Base.metadata, autoload_with=engine)
+    with Session(engine) as session:
+        query = session.execute(select(alembic_table)).fetchone()
+        result = query[0]
+        return result
