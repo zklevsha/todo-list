@@ -31,7 +31,7 @@ Create a file ".env" with the following variables:
 
 ```bash
 db_host=HOST  
-db_name=DATABASE  
+db_database=DATABASE  
 db_user=DB_USER  
 db_password=USER_PASSWORD  
 ```
@@ -43,19 +43,37 @@ Start the docker container and wait for the migration to conclude:
 ```bash
 docker-compose up -d
 ```
-### Step 5: Run the Application
+### Step 5: Apply Database Migrations (Alembic)
+
+
+1.  **Initialize Alembic -** The below command will create a `migrations` directory with necessary configuration files:
+	```bash
+	alembic init migrations
+	```
+2.  **Configure Alembic -** Open `alembic.ini` and set your database URL:
+	```bash
+	sqlalchemy.url = driver://user:pass@localhost/dbname
+	```  
+3. **Import the Model -** Import the model from the "db.py" file to `migrations/env.py`, by adding:
+    ```bash
+    from db import Base
+    target_metadata = Base.metadata 
+    ```
+4.  **Create a Migration Revision -** The revision will contain instructions to create the table:
+    ```bash
+    alembic revision --autogenerate -m "Creating todos table"
+    ```
+5.  **Apply the Migration -** If the generated files in the "versions" directory are in order, you can run the migration:
+    ```bash
+    alembic upgrade head
+    ```
+
+### Step 6: Run the Application
 
 Run the FastAPI application using Uvicorn:
 
 ```bash
 uvicorn app:app --reload
-```
-### Step 6: Apply Database Migrations (Optional)
-
-When running the container for the first time, the migration script should be executed. You can also apply the migration scripts using the `psql` command:
-
-```bash
-psql -h localhost -U -d -f migrations/1.sql
 ```
 
 ## Endpoints
@@ -70,7 +88,7 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/
 Expected response:
 
 ```json
-{"message":"This is the root endpoint."} 
+`{"message":"This is the root endpoint."}` 
 ```
 ### Test Route
 
@@ -82,7 +100,7 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/test
 Expected response:
 
 ```json
-{"message":"This is another test route."} 
+`{"message":"This is another test route."}` 
 ```
 ### Test connection to the PostgreSQL server
 
@@ -94,10 +112,10 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/db_test_co
 Expected response:
 
 ```json
-{"status":"success","message":"Successfully connected to the server."} 
+`{"status":"success","message":"Successfully connected to the server."}` 
 ```
 ### Get current DB schema version
-This endpoint returns the current DB schema version (integer) for the database specified in the ".env" file.
+This endpoint returns the current DB schema version (integer) for the database specified in the ".env" file querying the "alembic_version" table.
 
 ```bash
 curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/db_schema_version 
@@ -106,5 +124,5 @@ curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/db_schema_
 Expected response:
 
 ```json
-1
+"4e0841682211"
 ```

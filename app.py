@@ -47,12 +47,12 @@ async def testing_connection() -> ConnectionResponse:
 
 
 @app.get("/db_schema_version")
-async def get_schema_version() -> int:
+async def get_schema_version() -> str:
     """
-    Endpoint to get the current database schema version.
+    Endpoint to get the current database schema version (Alembic).
     
     Returns:
-        int: The current database schema version.
+        str: The current database schema version.
     """
     result = get_schema()
     return result
