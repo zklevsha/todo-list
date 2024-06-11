@@ -1,7 +1,8 @@
-alembic==1.7.7
-fastapi==0.83.0
-psycopg2==2.9.8
-pydantic==1.9.2
-python-dotenv==0.20.0
-SQLAlchemy==1.4.52
-uvicorn==0.16.0
+alembic==1.13.1
+fastapi==0.111.0
+psycopg2==2.9.9
+pydantic==2.7.3
+pydantic_core==2.18.4
+python-dotenv==1.0.1
+SQLAlchemy==2.0.30
+uvicorn==0.30.1
