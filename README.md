@@ -4,7 +4,8 @@
 A basic FastAPI application set up with test endpoints interacting with a PostgreSQL database running on a docker container. 
 ## Requirements
 
-* Python 3.6
+* Python 3.11
+* Python 3.11 devel package (python3.11-devel for Fedora-based distros, python3.11-dev Debian-based)
 * Docker-compose
 * Curl
 

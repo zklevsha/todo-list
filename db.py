@@ -1,20 +1,21 @@
 import psycopg2
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, select, func, Table
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import Session
+from datetime import datetime
+from sqlalchemy import create_engine, Integer, String, Boolean, select, func, Table
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy.exc import SQLAlchemyError
 from settings import connection_string
 
 engine = create_engine(connection_string)
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 class Todos(Base):
     __tablename__ = "todos"
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, index=True)
-    creation_date = Column(DateTime, default=func.now())
-    is_finished = Column(Boolean, default=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(30))
+    description: Mapped[str] = mapped_column(String(100))
+    creation_date: Mapped[datetime] = mapped_column(insert_default=func.now())
+    is_finished: Mapped[bool] = mapped_column(insert_default=False)
 
     def __repr__(self) -> str:
         return f"Todos(id={self.id!r}, title={self.title!r}, description={self.description!r}, creation_date={self.creation_date!r}, is_finished={self.is_finished!r})"
