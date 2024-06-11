@@ -46,24 +46,11 @@ docker-compose up -d
 ### Step 5: Apply Database Migrations (Alembic)
 
 
-1.  **Initialize Alembic -** The below command will create a `migrations` directory with necessary configuration files:
+1.  **Configure Alembic -** Open `alembic.ini` and set your database URL:
 	```bash
-	alembic init migrations
-	```
-2.  **Configure Alembic -** Open `alembic.ini` and set your database URL:
-	```bash
-	sqlalchemy.url = driver://user:pass@localhost/dbname
+	sqlalchemy.url = postgresql+psycopg2://db_user:db_password@db_host/db_name
 	```  
-3. **Import the Model -** Import the model from the "db.py" file to `migrations/env.py`, by adding:
-    ```bash
-    from db import Base
-    target_metadata = Base.metadata 
-    ```
-4.  **Create a Migration Revision -** The revision will contain instructions to create the table:
-    ```bash
-    alembic revision --autogenerate -m "Creating todos table"
-    ```
-5.  **Apply the Migration -** If the generated files in the "versions" directory are in order, you can run the migration:
+2.  **Apply the Migration -** Run the migration command:
     ```bash
     alembic upgrade head
     ```
