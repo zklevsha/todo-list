@@ -1,4 +1,4 @@
 .env
 .venv
 todo_list
-__pycache__/
+*__pycache__/
