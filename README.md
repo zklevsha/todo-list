@@ -50,7 +50,7 @@ docker-compose up -d
 Run the migration command:
 
 ```bash
-    alembic upgrade head
+alembic upgrade head
 ```
 
 ### Step 6: Run the Application
