@@ -47,11 +47,7 @@ docker-compose up -d
 ### Step 5: Apply Database Migrations (Alembic)
 
 
-1.  **Configure Alembic -** Open `alembic.ini` and set your database URL:
-	```bash
-	sqlalchemy.url = postgresql+psycopg2://db_user:db_password@db_host/db_name
-	```  
-2.  **Apply the Migration -** Run the migration command:
+Run the migration command:
     ```bash
     alembic upgrade head
     ```

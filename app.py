@@ -1,16 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from db import connect, connect_test, get_schema
-from pydantic import BaseModel
+from crud import connect_test, get_schema
+from schemas import ConnectionResponse, BasicResponse
+
 
 app = FastAPI()
-
-class BasicResponse(BaseModel):
-    message: str
-
-class ConnectionResponse(BaseModel):
-    status: str
-    message: str
-
 
 @app.get("/")
 async def root_test() -> BasicResponse:
@@ -42,7 +35,7 @@ async def testing_connection() -> ConnectionResponse:
     Returns:
         ConnectionResponse: Indicates the success or failure of the connection (status and message).
     """
-    result = connect_test()
+    result = await connect_test()
     return ConnectionResponse(**result)
 
 
@@ -54,5 +47,5 @@ async def get_schema_version() -> str:
     Returns:
         str: The current database schema version.
     """
-    result = get_schema()
+    result = await get_schema()
     return result
