@@ -111,3 +111,72 @@ Expected response:
 ```json
 "4e0841682211"
 ```
+
+## CRUD Operations
+
+CRUD operations can be performed with the following endpoints:
+
+### Create a new task
+```bash
+curl -i localhost:8000/add_task -XPOST -H 'Content-Type: application/json' -d '{"title":"Title", "description":"Description", "creation_date":"2024-07-21T00:00:00", "is_finished": "False"}' -w '\n'
+```
+Only the title and description are mandatory. 
+
+### Update an existing task
+```bash
+curl -i localhost:8000/update_task/1 -XPUT -H 'Content-Type: application/json' -d '{"title":"Title", "description":"Description", "creation_date":"2024-07-21T00:00:00", "is_finished": "True"}' -w '\n'
+```
+A "PUT" request is required in this case. Once again, title and description are needed. 
+
+### Get all existing tasks
+```bash
+curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/get_all_tasks
+```
+The endpoint will provide a list with all the entries. 
+
+### Search for tasks by ID
+```bash
+curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/get_task/6
+```
+Similar to the previous endpoint, but will return a specific entry based on its ID (if it exists). 
+
+
+## Contribution
+Unit tests were added to the project. Also, linter checks might be performed by following the instructions provided below. 
+
+### Running Tests
+
+We use `pytest` for running tests. To run the tests, follow these steps:
+
+1. **Install dependencies**:
+    Make sure you have all the necessary dependencies installed.
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+2. **Run the tests**:
+    To run all the tests, run:
+    ```bash
+    pytest
+    ```
+
+### Running Linter Checks
+
+We use `pylint`. The following messages are disabled as they are not critical:
+* missing-module-docstring / C0114
+* missing-class-docstring / C0115
+* missing-function-docstring / C0116
+* line-too-long / C0301
+* too-few-public-methods / R0903
+
+To run linter checks, follow these steps:
+
+1. **Install the linter packages**:
+    ```bash
+    pip install pylint pylint-flask-sqlalchemy pylint-flask
+    ```
+
+2. **Run `pylint`**:
+    ```bash
+    pylint --disable=C0114 --disable=C0115 --disable=C0116 --disable=C0301 --disable=R0903 *.py
+    ```

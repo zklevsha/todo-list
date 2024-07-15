@@ -7,7 +7,7 @@ Create Date: 2024-06-06 14:14:26.329115
 """
 from alembic import op
 import sqlalchemy as sa
-
+from datetime import datetime
 
 # revision identifiers, used by Alembic.
 revision = '30383fbd4ed1'
@@ -25,6 +25,13 @@ def upgrade():
     sa.Column('creation_date', sa.DateTime(), nullable=True),
     sa.Column('is_finished', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
+    )
+    #Inserting record into the table for testing
+    op.execute(
+        """
+        INSERT INTO todos (id, title, description, creation_date, is_finished)
+        VALUES (13, 'Sample Todo', 'This is a sample task description', '{}', False)
+        """.format(datetime.now())
     )
     # ### end Alembic commands ###
 
