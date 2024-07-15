@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
-from crud import connect_test, get_schema
-from schemas import ConnectionResponse, BasicResponse
+from typing import Union
+from fastapi import FastAPI
+from crud import connect_test, get_schema, create_todo_task, update_todo_task, get_all_todo_tasks, get_task_by_id
+from schemas import ConnectionResponse, BasicResponse, Todo
 
 
 app = FastAPI()
@@ -48,4 +49,54 @@ async def get_schema_version() -> str:
         str: The current database schema version.
     """
     result = await get_schema()
+    return result
+
+
+@app.post("/add_task", status_code=201)
+async def add_todo(todo: Todo) -> ConnectionResponse:
+    """
+    Endpoint to add a new 'todo' task.
+    
+    Returns:
+        ConnectionResponse: Indicates the success or failure of the transaction (status and message).
+    """
+    todo_dump = todo.model_dump()
+    result = await create_todo_task(todo_dump)
+    return result
+
+
+@app.put("/update_task/{task_id}", status_code=200)
+async def update_todo(task_id: int, todo: Todo) -> ConnectionResponse:
+    """
+    Endpoint to add a update an existing 'todo' task.
+    
+    Returns:
+        ConnectionResponse: Indicates the success or failure of the transaction (status and message).
+    """
+    todo_dump = todo.model_dump()
+    result = await update_todo_task(task_id, todo_dump)
+    return result
+
+
+@app.get("/get_all_tasks")
+async def get_all_todos() -> Union[list, dict]:
+    """
+    Endpoint to get the list of all 'todos'.
+    
+    Returns:
+       Returns the list of elements.
+    """
+    result = await get_all_todo_tasks()
+    return result
+
+
+@app.get("/get_task/{task_id}")
+async def get_task_id(task_id: int) -> Union[list, dict]:
+    """
+    Endpoint to get a specific 'todo' by ID.
+    
+    Returns:
+       Returns the a list with the info of the todo.
+    """
+    result = await get_task_by_id(task_id)
     return result
