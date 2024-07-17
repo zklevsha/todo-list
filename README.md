@@ -28,13 +28,17 @@ pip install -r requirements.txt
 ```
 ### Step 3: Configure ENV variables
 
-Create a file ".env" with the following variables:
+Create a file ".env" with the following variables (a test database will be created as well):
 
 ```bash
 db_host=HOST  
 db_database=DATABASE  
 db_user=DB_USER  
 db_password=USER_PASSWORD  
+
+test_db_database=TEST_DATABASE
+test_db_user=TEST_DB_USER
+test_db_password=TEST_USER_PASSWORD
 ```
 
 ### Step 4: Start the PostgreSQL container
