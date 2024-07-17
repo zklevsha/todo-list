@@ -1,10 +1,14 @@
+import os
 import sqlalchemy as sa
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from db import async_session, engine
+from db import async_session, engine, test_async_session, test_engine
 from models import Todos
 
+if os.getenv("TESTING") == "true":
+    engine = test_engine
+    async_session = test_async_session
 
 async def connect_test():
     """

@@ -8,11 +8,25 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - pgdata:/var/lib/postgresql/data 
+      - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${db_password}
       POSTGRES_USER: ${db_user}
       POSTGRES_DB: ${db_database}
 
+  postgres-test:
+    image: postgres:13-bullseye
+    restart: always
+    pull_policy: always
+    ports:
+      - 5433:5432
+    volumes:
+      - test_pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${test_db_password}
+      POSTGRES_USER: ${test_db_user}
+      POSTGRES_DB: ${test_db_database}
+
 volumes:
-  pgdata: 
+  pgdata:
+  test_pgdata:

@@ -8,7 +8,7 @@ import pytest_asyncio
 from httpx import ASGITransport
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import app
-from db import engine
+from crud import engine
 
 
 sync_client = TestClient(app)
@@ -61,7 +61,7 @@ async def test_get_all_tasks(client: httpx.AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_get_task_by_id(client: httpx.AsyncClient) -> None:
-    response = await client.get("/get_task/13")
+    response = await client.get("/get_task/1")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
     await engine.dispose()
@@ -69,7 +69,7 @@ async def test_get_task_by_id(client: httpx.AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_update_task(client: httpx.AsyncClient) -> None:
     todo_data = {"title": "Updated Task", "description": "Updated Description", "is_finished": True}
-    response = await client.put("/update_task/13", json=todo_data)
+    response = await client.put("/update_task/1", json=todo_data)
     assert response.status_code == 200
     assert "status" in response.json()
     assert "message" in response.json()
