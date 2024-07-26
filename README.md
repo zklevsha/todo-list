@@ -155,32 +155,26 @@ We use `pytest` for running tests. To run the tests, follow these steps:
 1. **Install dependencies**:
     Make sure you have all the necessary dependencies installed.
     ```bash
-    pip install -r requirements.txt
+    pip install -r requirements-dev.txt
     ```
 
 2. **Run the tests**:
     To run all the tests, run:
     ```bash
-    pytest
+    pytest -v
     ```
 
 ### Running Linter Checks
 
-We use `pylint`. The following messages are disabled as they are not critical:
-* missing-module-docstring / C0114
-* missing-class-docstring / C0115
-* missing-function-docstring / C0116
-* line-too-long / C0301
-* too-few-public-methods / R0903
-
 To run linter checks, follow these steps:
 
-1. **Install the linter packages**:
+1. **Install dependencies**:
+    If not done in the previous step, install the dependencies using the requirements-dev.txt file:
     ```bash
-    pip install pylint pylint-flask-sqlalchemy pylint-flask
+    pip install -r requirements-dev.txt
     ```
 
 2. **Run `pylint`**:
     ```bash
-    pylint --disable=C0114 --disable=C0115 --disable=C0116 --disable=C0301 --disable=R0903 *.py
+    pylint *.py
     ```

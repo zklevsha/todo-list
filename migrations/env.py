@@ -1,5 +1,3 @@
-# pylint: disable=E1101
-# Disabled rule E1101 as it's being incorrectly marked here.
 from logging.config import fileConfig
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import pool
