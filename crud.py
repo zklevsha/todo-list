@@ -1,14 +1,14 @@
-import os
+"""
+crud.py
+This module handles all the functions called by the app.py module, 
+as well as managing the functionality of the DB operations for the to-do list.
+"""
 import sqlalchemy as sa
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from db import async_session, engine, test_async_session, test_engine
+from db import async_session, engine
 from models import Todos
-
-if os.getenv("TESTING") == "true":
-    engine = test_engine
-    async_session = test_async_session
 
 async def connect_test():
     """
@@ -71,7 +71,9 @@ async def update_todo_task(task_id: int, todo: dict):
                 query = await session.execute(s_query)
                 existing_task = query.scalar()
                 if existing_task is None:
-                    raise HTTPException(400, detail=['Unable modify a resource that does not exist.'])
+                    raise HTTPException(
+                        400, detail=['Unable modify a resource that does not exist.']
+                    )
 
                 updated_task = (sa.update(Todos).where(Todos.id == task_id).values(**todo))
                 await session.execute(updated_task)

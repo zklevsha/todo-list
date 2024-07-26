@@ -1,6 +1,12 @@
+"""
+app.py
+The main FastAPI application for the project. Here, the FastAPI instance is created, 
+and routes are configured.
+"""
 from typing import Union
 from fastapi import FastAPI
-from crud import connect_test, get_schema, create_todo_task, update_todo_task, get_all_todo_tasks, get_task_by_id
+from crud import connect_test, get_schema, create_todo_task, \
+    update_todo_task, get_all_todo_tasks, get_task_by_id
 from schemas import ConnectionResponse, BasicResponse, Todo
 
 
@@ -28,19 +34,20 @@ async def test_route() -> BasicResponse:
     return BasicResponse(message="This is another test route.")
 
 
-@app.get("/db_test_connection")
+@app.get("/db_test_connection", status_code=200)
 async def testing_connection() -> ConnectionResponse:
     """
     Endpoint to test the DB connection.
     
     Returns:
-        ConnectionResponse: Indicates the success or failure of the connection (status and message).
+        ConnectionResponse: Indicates the success or failure \
+            of the connection (status and message).
     """
     result = await connect_test()
     return ConnectionResponse(**result)
 
 
-@app.get("/db_schema_version")
+@app.get("/db_schema_version", status_code=200)
 async def get_schema_version() -> str:
     """
     Endpoint to get the current database schema version (Alembic).
@@ -58,7 +65,8 @@ async def add_todo(todo: Todo) -> ConnectionResponse:
     Endpoint to add a new 'todo' task.
     
     Returns:
-        ConnectionResponse: Indicates the success or failure of the transaction (status and message).
+        ConnectionResponse: Indicates the success or failure \
+            of the transaction (status and message).
     """
     todo_dump = todo.model_dump()
     result = await create_todo_task(todo_dump)
@@ -71,7 +79,8 @@ async def update_todo(task_id: int, todo: Todo) -> ConnectionResponse:
     Endpoint to add a update an existing 'todo' task.
     
     Returns:
-        ConnectionResponse: Indicates the success or failure of the transaction (status and message).
+        ConnectionResponse: Indicates the success or failure \
+            of the transaction (status and message).
     """
     todo_dump = todo.model_dump()
     result = await update_todo_task(task_id, todo_dump)

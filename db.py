@@ -1,3 +1,7 @@
+"""
+db.py
+The DB module. It creates the engine and sessions for the DB connection.
+"""
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from settings import connection_string, test_connection_string
 
