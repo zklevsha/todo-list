@@ -1,5 +1,3 @@
-# pylint: disable=E0401
-# pylint: disable=W0621
 """
 test_app.py
 The main module containing all tests for the FastAPI application.
@@ -8,8 +6,7 @@ import sys
 import os
 from fastapi.testclient import TestClient
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from conftest import test_client
-from app import app
+from app import app #pylint: disable=wrong-import-position
 
 
 sync_client = TestClient(app)
