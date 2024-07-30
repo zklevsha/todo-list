@@ -1,18 +1,17 @@
-# pylint: disable=E0401
-# pylint: disable=W0621
 """
 conftest.py
 The main config file to set up sessions and other parameters for the test_app.py module.
 """
 import os
 import sys
-import pytest
 import asyncio
 from httpx import AsyncClient, ASGITransport
 import pytest_asyncio
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#pylint: disable=wrong-import-position
 from db import engine, async_session, test_engine, test_async_session
 from app import app
+#pylint: enable=wrong-import-position
 
 @pytest_asyncio.fixture(scope="session")
 def event_loop():
@@ -21,8 +20,8 @@ def event_loop():
     yield loop
     loop.close()
 
-@pytest_asyncio.fixture(scope="session")
-async def db_session(event_loop):
+@pytest_asyncio.fixture(name="db_sess", scope="session")
+async def db_session():
     """Create a new database session for the test."""
     async with test_engine.connect() as connection:
         async with connection.begin() as transaction:
@@ -34,12 +33,12 @@ async def db_session(event_loop):
                 await connection.close()
 
 @pytest_asyncio.fixture(scope="session")
-async def test_client(db_session):
+async def test_client(db_sess):
     """A test client that overrides the async session with the test one."""
 
     def override_async_session():
         try:
-            yield db_session
+            yield db_sess
         finally:
             pass
 

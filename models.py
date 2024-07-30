@@ -1,6 +1,3 @@
-# pylint: disable=E1102
-# Disabled E1102 check because the func.now() is being reported
-# as not callable https://github.com/sqlalchemy/sqlalchemy/issues/9189
 """
 models.py
 This module contains the model for the "todos" database.
@@ -9,6 +6,7 @@ from datetime import datetime
 from sqlalchemy import Integer, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+func: callable # Fix for E1102
 
 class Base(DeclarativeBase): # pylint: disable=R0903
     """
