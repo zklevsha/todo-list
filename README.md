@@ -72,7 +72,7 @@ The application can be tested using `curl`:
 ### Root Endpoint
 
 ```bash
-curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/ 
+curl -i localhost:8000/api/v1/ -XGET -H 'Content-Type: application/json' -w '\n' 
 ```
 Expected response:
 
@@ -83,7 +83,7 @@ Expected response:
 
 
 ```bash
-curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/test 
+curl -i localhost:8000/api/v1/test -XGET -H 'Content-Type: application/json' -w '\n'  
 ```
 
 Expected response:
@@ -95,7 +95,7 @@ Expected response:
 
 
 ```bash
-curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/db_test_connection 
+curl -i localhost:8000/api/v1/db-connection -XGET -H 'Content-Type: application/json' -w '\n' 
 ```
 
 Expected response:
@@ -107,7 +107,7 @@ Expected response:
 This endpoint returns the current DB schema version (integer) for the database specified in the ".env" file querying the "alembic_version" table.
 
 ```bash
-curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/db_schema_version 
+curl -i localhost:8000/api/v1/schema -XGET -H 'Content-Type: application/json' -w '\n' 
 ```
 
 Expected response:
@@ -120,29 +120,41 @@ Expected response:
 
 CRUD operations can be performed with the following endpoints:
 
-### Create a new task
-```bash
-curl -i localhost:8000/add_task -XPOST -H 'Content-Type: application/json' -d '{"title":"Title", "description":"Description", "creation_date":"2024-07-21T00:00:00", "is_finished": "False"}' -w '\n'
-```
-Only the title and description are mandatory. 
-
-### Update an existing task
-```bash
-curl -i localhost:8000/update_task/1 -XPUT -H 'Content-Type: application/json' -d '{"title":"Title", "description":"Description", "creation_date":"2024-07-21T00:00:00", "is_finished": "True"}' -w '\n'
-```
-A "PUT" request is required in this case. Once again, title and description are needed. 
-
 ### Get all existing tasks
 ```bash
-curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/get_all_tasks
+curl -i localhost:8000/api/v1/tasks -XGET  -H 'Content-Type: application/json' -w '\n'
 ```
 The endpoint will provide a list with all the entries. 
 
+### Create a new task
+```bash
+curl -i localhost:8000/api/v1/tasks -XPOST -H 'Content-Type: application/json' -d '{"title":"Title", "description":"Description", "creation_date":"2024-07-21T00:00:00", "is_finished": "False"}' -w '\n'
+```
+Only the title and description are mandatory. 
+
 ### Search for tasks by ID
 ```bash
-curl -XGET -H 'Content-Type: application/json' -w '\n' localhost:8000/get_task/6
+curl -i localhost:8000/api/v1/tasks/1 -XGET  -H 'Content-Type: application/json' -w '\n'
 ```
 Similar to the previous endpoint, but will return a specific entry based on its ID (if it exists). 
+
+### Update an existing task
+```bash
+curl -i localhost:8000/api/v1/tasks/1 -XPUT -H 'Content-Type: application/json' -d '{"title":"Title", "description":"Description", "creation_date":"2024-07-21T00:00:00", "is_finished": "false"}' -w '\n'
+```
+A "PUT" request is required in this case. Once again, title and description are needed. 
+
+### Set tasks as completed/pending
+```bash
+curl -i localhost:8000/api/v1/tasks/1/finish -XPUT -H 'Content-Type: application/json' -d '{"is_finished": "true"}' -w '\n'
+```
+This endpoint will mark a task as finished if it's not, and viceversa.  
+
+### Delete tasks by ID
+```bash
+curl -i localhost:8000/api/v1/tasks/1 -XDELETE -H 'Content-Type: application/json' -w '\n'
+```
+This endpoint will delete a specific task, based on its ID (if it exists). 
 
 
 ## Contribution

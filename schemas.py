@@ -3,6 +3,7 @@ schemas.py
 This module defines the schemas used 
 for data validation and serialization in the project.
 """
+from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 
@@ -16,10 +17,11 @@ class ConnectionResponse(BaseModel):
     """
     Model for a connection response containing status and message.
     """
+    task_id: Optional[int] = None
     status: str
     message: str
 
-class Todo(BaseModel):
+class TodoData(BaseModel):
     """
     Model for a todo item containing title, description, 
     creation date, and completion status.
@@ -28,3 +30,9 @@ class Todo(BaseModel):
     description: str
     creation_date: datetime = Field(default_factory=datetime.now)
     is_finished: bool = False
+
+class IsFinished(BaseModel):
+    """
+    Model for a basic response containing true/false values.
+    """
+    is_finished: bool
