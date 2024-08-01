@@ -13,7 +13,7 @@ class Base(DeclarativeBase): # pylint: disable=R0903
     Base class for the ORM models in the project.
     """
 
-class Todos(Base): # pylint: disable=R0903
+class Todo(Base): # pylint: disable=R0903
     """
     Represents the 'todos' table in the database.
     """
@@ -25,5 +25,5 @@ class Todos(Base): # pylint: disable=R0903
     is_finished: Mapped[bool] = mapped_column(insert_default=False)
 
     def __repr__(self) -> str:
-        return f"Todos(id={self.id!r}, title={self.title!r}, description={self.description!r}, \
+        return f"Todo(id={self.id!r}, title={self.title!r}, description={self.description!r}, \
             creation_date={self.creation_date!r}, is_finished={self.is_finished!r})"
