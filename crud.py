@@ -25,6 +25,10 @@ async def connect_test(engine: AsyncEngine):
         logging.error("SQLAlchemyError occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
 
 async def get_schema(db: AsyncSession):
     """
@@ -40,6 +44,10 @@ async def get_schema(db: AsyncSession):
         return version_num
     except SQLAlchemyError as error:
         logging.error("SQLAlchemyError occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
     finally:
@@ -64,6 +72,10 @@ async def create_todo_task(todo: dict, db: AsyncSession):
         'message': f'Task with ID {task_id} added successfully.'}
     except SQLAlchemyError as error:
         logging.error("SQLAlchemyError occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
     finally:
@@ -94,33 +106,13 @@ async def update_todo_task(task_id: int, todo: dict, db: AsyncSession):
         logging.error("SQLAlchemyError occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
-    finally:
-        await db.close()
-
-
-async def delete_todo_task(task_id, db: AsyncSession):
-    """
-    Function to delete an existing task in the "todos" table.
-    
-    Returns:
-        Status code and message of the transaction.
-    """
-    try:
-        s_query = sa.select(Todo).where(Todo.id == task_id)
-        query = await db.execute(s_query)
-        task_to_delete = query.scalar()
-        if not task_to_delete:
-            raise HTTPException(status_code=400,
-            detail=f'Task with ID {task_id} does not exist. Can\'t delete')
-        await db.delete(task_to_delete)
-        await db.commit()
-        return {'status': 'success', 'message': f'Task {task_id} deleted successfully.'}
-    except SQLAlchemyError as error:
-        logging.error("SQLAlchemyError occurred: %s", error)
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
     finally:
         await db.close()
+
 
 async def get_all_todo_tasks(db: AsyncSession):
     """
@@ -148,6 +140,45 @@ async def get_all_todo_tasks(db: AsyncSession):
         return formatted_output
     except SQLAlchemyError as error:
         logging.error("SQLAlchemyError occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    except HTTPException:
+        #Re-raise the HTTPExceptions to avoid them for being
+        # overwritten by the general Exception block
+        raise
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    finally:
+        await db.close()
+
+
+async def delete_todo_task(task_id, db: AsyncSession):
+    """
+    Function to delete an existing task in the "todos" table.
+    
+    Returns:
+        Status code and message of the transaction.
+    """
+    try:
+        s_query = sa.select(Todo).where(Todo.id == task_id)
+        query = await db.execute(s_query)
+        task_to_delete = query.scalar()
+        if not task_to_delete:
+            raise HTTPException(status_code=400,
+            detail=f'Task with ID {task_id} does not exist. Can\'t delete')
+        await db.delete(task_to_delete)
+        await db.commit()
+        return {'status': 'success', 'message': f'Task {task_id} deleted successfully.'}
+    except SQLAlchemyError as error:
+        logging.error("SQLAlchemyError occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    except HTTPException:
+        raise
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
     finally:
@@ -180,6 +211,12 @@ async def get_todo_task_by_id(task_id, db: AsyncSession):
         return formatted_output
     except SQLAlchemyError as error:
         logging.error("SQLAlchemyError occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    except HTTPException:
+        raise
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
     finally:
@@ -215,6 +252,12 @@ async def mark_todo_task_completed(task_id: int, finished: bool, db: AsyncSessio
         return {'status': 'success', 'message': f'Task {task_id} successfully set.'}
     except SQLAlchemyError as error:
         logging.error("SQLAlchemyError occurred: %s", error)
+        raise HTTPException(status_code=500,
+        detail='An internal server error occurred. Please try again later.') from error
+    except HTTPException:
+        raise
+    except Exception as error:
+        logging.error("An unexpected error occurred: %s", error)
         raise HTTPException(status_code=500,
         detail='An internal server error occurred. Please try again later.') from error
     finally:

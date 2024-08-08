@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
-    sa.Column('creation_date', sa.DateTime(), nullable=True),
+    sa.Column('creation_date', sa.Integer(), nullable=False),
     sa.Column('is_finished', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
