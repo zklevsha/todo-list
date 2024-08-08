@@ -1,3 +1,6 @@
+# pylint: disable=E1101
+# pylint: disable=C0103
+# Disabled rules C0103 and E1101 as these are being incorrectly marked here.
 """Creating todos table
 
 Revision ID: 30383fbd4ed1
@@ -7,7 +10,6 @@ Create Date: 2024-06-06 14:14:26.329115
 """
 from alembic import op
 import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = '30383fbd4ed1'
@@ -22,7 +24,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
-    sa.Column('creation_date', sa.DateTime(), nullable=True),
+    sa.Column('creation_date', sa.Integer(), nullable=False),
     sa.Column('is_finished', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
