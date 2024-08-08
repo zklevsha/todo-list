@@ -15,7 +15,7 @@ async def get_a_task_id(test_client, todo_data):
     """
     Function to add a new task to the database and get its ID.
     """
-    put_response = await test_client.post(BASE_URL, json=todo_data)
+    put_response = await test_client.post(f"{BASE_URL}/", json=todo_data)
     task_id = put_response.json()['task_id']
     return task_id
 
@@ -61,7 +61,7 @@ async def test_get_all_tasks(test_client) -> None:
     Testing getting all tasks.
     """
     #Testing with an empty list
-    response = await test_client.get(BASE_URL)
+    response = await test_client.get(f"{BASE_URL}/")
     if isinstance(response.json(), dict):
         assert response.status_code == 200
         assert response.json() == {"detail": "The Todo list is empty."}
@@ -96,7 +96,7 @@ async def test_add_task(test_client) -> None:
     """
     todo_data = {"title": "Testing_add_todo",
     "description": "Description_add", "is_finished": False}
-    response = await test_client.post(BASE_URL, json=todo_data)
+    response = await test_client.post(f"{BASE_URL}/", json=todo_data)
     assert response.status_code == 201
     assert "status" in response.json()
     assert "message" in response.json()
@@ -107,7 +107,7 @@ async def test_bad_add_task(test_client) -> None:
     Testing adding a new incomplete task to the DB.
     """
     todo_data = {"title": "Testing_add_todo", "is_finished": False}
-    response = await test_client.post(BASE_URL, json=todo_data)
+    response = await test_client.post(f"{BASE_URL}/", json=todo_data)
     assert response.status_code == 422
     assert "detail" in response.json()
     expected_error = [

@@ -2,11 +2,9 @@
 models.py
 This module contains the model for the "todos" database.
 """
-from datetime import datetime
-from sqlalchemy import Integer, String, func
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-func: callable # Fix for E1102
 
 class Base(DeclarativeBase): # pylint: disable=R0903
     """
@@ -21,7 +19,7 @@ class Todo(Base): # pylint: disable=R0903
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(30))
     description: Mapped[str] = mapped_column(String(100))
-    creation_date: Mapped[datetime] = mapped_column(insert_default=func.now())
+    creation_date: Mapped[int] = mapped_column(Integer, nullable=False)
     is_finished: Mapped[bool] = mapped_column(insert_default=False)
 
     def __repr__(self) -> str:

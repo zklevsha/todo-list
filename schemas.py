@@ -28,7 +28,7 @@ class TodoData(BaseModel):
     """
     title: str
     description: str
-    creation_date: datetime = Field(default_factory=datetime.now)
+    creation_date: int = Field(default_factory=lambda: int(datetime.now().timestamp()))
     is_finished: bool = False
 
 class IsFinished(BaseModel):

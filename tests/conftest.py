@@ -2,17 +2,12 @@
 conftest.py
 The main config file to set up sessions and other parameters for the test_app.py module.
 """
-import os
-import sys
 import asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 import pytest_asyncio
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-#pylint: disable=wrong-import-position
+from httpx import AsyncClient, ASGITransport
 from db import test_engine, test_async_session
-from app import app, get_db, get_engine
-#pylint: enable=wrong-import-position
+from app import app
+from routers.db_functions import get_db, get_engine, AsyncEngine, AsyncSession
 
 async def override_get_db() -> AsyncSession:
     """
