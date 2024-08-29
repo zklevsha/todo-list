@@ -1,8 +1,13 @@
 alembic==1.13.1
 asyncpg==0.29.0
+bcrypt==4.0.1
 fastapi==0.111.0
+fastapi-users==13.0.0
+fastapi-users-db-sqlalchemy==6.0.1
+passlib==1.7.4
 pydantic==2.7.3
 pydantic_core==2.18.4
 python-dotenv==1.0.1
+python-jose==3.3.0
 SQLAlchemy==2.0.30
 uvicorn==0.30.1
