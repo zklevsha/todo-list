@@ -25,7 +25,7 @@ user_role_enum = sa.Enum('ADMIN', 'USER', name='userrole'
         'ADMIN',
         'USER',
         name='userrole',
-        create_type=False,
+        create_type=True,
         ), "postgresql",
     )
 
@@ -80,4 +80,5 @@ def downgrade():
                existing_type=sa.VARCHAR(),
                nullable=True)
     op.drop_table('users')
+    user_role_enum.drop(op.get_bind(), checkfirst=True)
     # ### end Alembic commands ###
