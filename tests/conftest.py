@@ -6,6 +6,7 @@ import asyncio
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from db import test_engine, test_async_session
+from settings import generate_random_string
 from app import app
 from routers.db_functions import get_db, get_engine, AsyncEngine, AsyncSession
 
@@ -28,15 +29,18 @@ async def override_get_engine() -> AsyncEngine:
 
 @pytest_asyncio.fixture(scope="session")
 def event_loop():
-    """Function to create a new event loop for each session."""
+    """
+    Function to create a new event loop for each session.
+    """
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
 @pytest_asyncio.fixture(scope="session")
 async def test_client():
-    """A test client that overrides the async session with the test one."""
-
+    """
+    A test client that overrides the async session with the test one.
+    """
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_engine] = override_get_engine
     async with AsyncClient(
@@ -44,3 +48,17 @@ async def test_client():
         base_url="http://testserver"
     ) as test_clients:
         yield test_clients
+
+def generate_username():
+    """
+    Function to create a random 6-letter username.
+    """
+    return generate_random_string(6)
+
+def generate_creds():
+    """
+    Function to create a pair of user/email.
+    """
+    user = generate_username()
+    email = f"{user}@test.com"
+    return user, email

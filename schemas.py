@@ -3,9 +3,11 @@ schemas.py
 This module defines the schemas used 
 for data validation and serialization in the project.
 """
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict
+from models import UserRole
+from settings import hash_password
 
 class BasicResponse(BaseModel):
     """
@@ -36,3 +38,77 @@ class IsFinished(BaseModel):
     Model for a basic response containing true/false values.
     """
     is_finished: bool
+
+class UserCreate(BaseModel):
+    """
+    Model for the user creation endpoint.
+    """
+    username: str
+    email: EmailStr
+    password: Union[str, bytes]
+    creation_date: int = Field(default_factory=lambda: int(datetime.now().timestamp()))
+    role: UserRole = UserRole.USER
+
+    @field_validator('password')
+    def hashed_password(cls, value: str) -> bytes: # pylint: disable=E0213 #"cls" already fulfills that role
+        """
+        Function to return a hashed password. 
+        """
+        return hash_password(value)
+
+    model_config = ConfigDict(use_enum_values=True)
+
+class UserUpdate(BaseModel):
+    """
+    Model for the modification of an existing user.
+    """
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+
+    @field_validator('password')
+    def hashed_password(cls, value: Optional[str]) -> Optional[bytes]: # pylint: disable=E0213
+        """
+        Function to return a hashed password, if one was supplied. 
+        """
+        if value is not None:
+            return hash_password(value)
+        return value
+
+class UserRead(BaseModel):
+    """
+    Model for the output when requesting user info.
+    """
+    id: int
+    username: str
+    email: EmailStr
+    role: UserRole
+
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+
+class UserOutput(BaseModel):
+    """
+    Model for the output when requesting user info with a message.
+    """
+    message: str
+    user: UserRead
+
+class Token(BaseModel):
+    """
+    Model for the access token.
+    """
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    """
+    Model for the data contained within the access token
+    """
+    id: Optional[int] = None
+    role: Optional[UserRole] = None
+
+class NewRole(BaseModel):
+    """
+    Model to update the user role.
+    """
+    role: UserRole
