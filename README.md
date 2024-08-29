@@ -23,14 +23,14 @@ A simple To-Do list application built with FastAPI, allowing users to create, re
 To create and enter the virtual environment, run:
 ```bash
 python3 -m venv .venv
-source  .venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### Step 2: Install the dependencies
 Install the dependencies from the `requirements.txt` file:
 
 ```bash
-pip  install  -r  requirements.txt
+pip install -r requirements.txt
 ```
 
 ### Step 3: Configure ENV variables
@@ -62,7 +62,7 @@ openssl rand -hex 32
 Start the docker container and wait for the migration to conclude:
 
 ```bash
-docker-compose  up  -d
+docker-compose up -d
 ```
 
 ### Step 5: Apply Database Migrations (Alembic)
@@ -70,7 +70,7 @@ docker-compose  up  -d
 Run the migration command:
 
 ```bash
-alembic  upgrade  head
+alembic upgrade head
 ```
 
 ### Step 6: Run the Application
@@ -78,7 +78,7 @@ alembic  upgrade  head
 Run the FastAPI application using Uvicorn:
 
 ```bash
-uvicorn  app:app  --reload
+uvicorn app:app --reload
 ```
 
 
