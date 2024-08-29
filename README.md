@@ -22,7 +22,7 @@ A simple To-Do list application built with FastAPI, allowing users to create, re
 
 To create and enter the virtual environment, run:
 ```bash
-python3  -m  venv  .venv
+python3 -m venv .venv
 source  .venv/bin/activate
 ```
 
