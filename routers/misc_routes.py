@@ -3,11 +3,12 @@ misc_routes.py
 Routes are configured for the test and db_schema endpoints.
 """
 from fastapi import APIRouter, Depends
-from tasks_crud import connect_test, get_schema
+from crud.tasks import connect_test, get_schema
 from schemas import ConnectionResponse, BasicResponse
 from routers.db_functions import get_db, get_engine, AsyncEngine, AsyncSession
 
 router = APIRouter()
+
 
 @router.get("/")
 async def root_test() -> BasicResponse:
@@ -33,7 +34,7 @@ async def test_route() -> BasicResponse:
 
 @router.get("/db-connection", status_code=200)
 async def testing_connection(engine_main: AsyncEngine = Depends(get_engine),
-            db: AsyncSession = Depends(get_db)) -> ConnectionResponse:
+                             db: AsyncSession = Depends(get_db)) -> ConnectionResponse:
     """
     Endpoint to test the DB connection.
     
