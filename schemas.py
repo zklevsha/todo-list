@@ -7,13 +7,15 @@ from typing import Optional, Union
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict
 from models import UserRole
-from settings import hash_password
+from crypto import hash_password
+
 
 class BasicResponse(BaseModel):
     """
     Model for a basic response containing a message.
     """
     message: str
+
 
 class ConnectionResponse(BaseModel):
     """
@@ -22,6 +24,7 @@ class ConnectionResponse(BaseModel):
     task_id: Optional[int] = None
     status: str
     message: str
+
 
 class TodoData(BaseModel):
     """
@@ -33,11 +36,13 @@ class TodoData(BaseModel):
     creation_date: int = Field(default_factory=lambda: int(datetime.now().timestamp()))
     is_finished: bool = False
 
+
 class IsFinished(BaseModel):
     """
     Model for a basic response containing true/false values.
     """
     is_finished: bool
+
 
 class UserCreate(BaseModel):
     """
@@ -50,13 +55,14 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.USER
 
     @field_validator('password')
-    def hashed_password(cls, value: str) -> bytes: # pylint: disable=E0213 #"cls" already fulfills that role
+    def hashed_password(cls, value: str) -> bytes:  # pylint: disable=E0213 #"cls" already fulfills that role
         """
         Function to return a hashed password. 
         """
         return hash_password(value)
 
     model_config = ConfigDict(use_enum_values=True)
+
 
 class UserUpdate(BaseModel):
     """
@@ -67,13 +73,14 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
 
     @field_validator('password')
-    def hashed_password(cls, value: Optional[str]) -> Optional[bytes]: # pylint: disable=E0213
+    def hashed_password(cls, value: Optional[str]) -> Optional[bytes]:  # pylint: disable=E0213
         """
         Function to return a hashed password, if one was supplied. 
         """
         if value is not None:
             return hash_password(value)
         return value
+
 
 class UserRead(BaseModel):
     """
@@ -86,12 +93,14 @@ class UserRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)
 
+
 class UserOutput(BaseModel):
     """
     Model for the output when requesting user info with a message.
     """
     message: str
     user: UserRead
+
 
 class Token(BaseModel):
     """
@@ -100,12 +109,14 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     """
     Model for the data contained within the access token
     """
     id: Optional[int] = None
     role: Optional[UserRole] = None
+
 
 class NewRole(BaseModel):
     """

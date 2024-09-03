@@ -2,3 +2,4 @@
 .venv
 todo_list
 *__pycache__/
+.idea

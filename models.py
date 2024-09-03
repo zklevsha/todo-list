@@ -7,10 +7,11 @@ from sqlalchemy import Integer, String, Enum, LargeBinary, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class Base(DeclarativeBase): # pylint: disable=R0903
+class Base(DeclarativeBase):  # pylint: disable=R0903
     """
     Base class for the ORM models in the project.
     """
+
 
 class UserRole(str, enum.Enum):
     """
@@ -19,7 +20,8 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
     USER = "user"
 
-class User(Base): # pylint: disable=R0903
+
+class User(Base):  # pylint: disable=R0903
     """
     Represents the 'users' table in the database.
     """
@@ -30,13 +32,14 @@ class User(Base): # pylint: disable=R0903
     password: Mapped[bytes] = mapped_column(LargeBinary(255), nullable=False)
     creation_date: Mapped[int] = mapped_column(Integer, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole),
-        insert_default=UserRole.USER, nullable=False)
+                                           insert_default=UserRole.USER, nullable=False)
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, username={self.username!r}, email={self.email!r}, \
             creation_date={self.creation_date!r}, role={self.role!r})"
 
-class Todo(Base): # pylint: disable=R0903
+
+class Todo(Base):  # pylint: disable=R0903
     """
     Represents the 'todos' table in the database.
     """

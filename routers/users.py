@@ -3,7 +3,7 @@ users.py
 Routes are configured for the users endpoints.
 """
 from fastapi import APIRouter, Depends
-from users_crud import create_new_user, get_existing_user, update_existing_user, \
+from crud.users import create_new_user, get_existing_user, update_existing_user, \
     delete_existing_user, get_all_existing_users, set_new_role
 from schemas import UserOutput, UserCreate, UserUpdate, NewRole
 from routers.db_functions import get_db, AsyncSession

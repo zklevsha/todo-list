@@ -1,5 +1,5 @@
 """
-users_crud.py
+users.py
 This module handles all the functions called by the app.py module, 
 but focused on user-related DB operations.
 """
@@ -12,7 +12,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from models import User
 from schemas import UserCreate, UserUpdate
-from settings import verify_password
+from crypto import verify_password
 from oauth import create_access_token
 
 def handle_errors(func):
