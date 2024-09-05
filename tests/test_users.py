@@ -2,11 +2,25 @@
 test_users.py
 The module containing all user-related tests for the FastAPI application.
 """
-from helpers import generate_creds, login, get_new_token, ADMIN_TOKEN
+from helpers import generate_creds, login, get_new_token, ADMIN_TOKEN, get_new_user_id
 from schemas import UserOutput
 
 BASE_URL = "/api/v1/users"
 main_test_user = {}
+
+
+async def test_register_user_admin(test_client) -> None:
+    """
+    Testing registering a new user with the "admin" role.
+    """
+    user, email = generate_creds()
+    user_data = {"username": user, "email": email, "password": "test", "role": "admin"}
+    response = await test_client.post(f"{BASE_URL}/register", json=user_data)
+    parsed_response = response.json()
+
+    # The user should be properly created, but the role will be forced to be "user".
+    assert response.status_code == 200
+    assert parsed_response['user']['role'] == "user"
 
 
 async def test_get_user_by_id(test_client) -> None:
@@ -115,13 +129,24 @@ async def test_delete_user(test_client) -> None:
     headers = {
         "Authorization": f"Bearer {auth_token}"
     }
-    response = await test_client.delete(f"{BASE_URL}/{user_id}", headers=headers)
-    assert response.status_code == 200
-    assert isinstance(response.json(), dict)
 
     no_auth_user = await test_client.delete(f"{BASE_URL}/{user_id}")
     assert no_auth_user.status_code == 401
 
+    response = await test_client.delete(f"{BASE_URL}/{user_id}", headers=headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)
+
     # Testing non-existent
     response = await test_client.delete(f"{BASE_URL}/131313", headers=headers)
     assert response.status_code == 400
+
+    # Testing deletion by an admin
+    user = await get_new_user_id(test_client, base_url=BASE_URL)
+    user_id = user.user.id
+    headers = {
+        "Authorization": f"Bearer {ADMIN_TOKEN}"
+    }
+    response = await test_client.delete(f"{BASE_URL}/{user_id}", headers=headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)

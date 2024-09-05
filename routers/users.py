@@ -9,8 +9,8 @@ from schemas import UserOutput, UserCreate, UserUpdate, NewRole
 from routers.db_functions import get_db, AsyncSession
 from routers.tasks import get_user_id, get_user_role
 
-
 router = APIRouter()
+
 
 @router.post("/register", response_model=UserOutput)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -20,11 +20,13 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     Returns:
        Returns info about the newly created user.
     """
-    new_user = await create_new_user(user=user, db=db)
+    user_data = user.model_dump()
+    new_user = await create_new_user(user_data=user_data, db=db)
     return {
         "message": "User created successfully.",
         "user": new_user
     }
+
 
 @router.get("/{id_}", response_model=UserOutput)
 async def get_user(id_: int, db: AsyncSession = Depends(get_db)):
@@ -40,9 +42,10 @@ async def get_user(id_: int, db: AsyncSession = Depends(get_db)):
         "user": user
     }
 
+
 @router.put("/{id_}", response_model=UserOutput)
 async def update_user(id_: int, user_data: UserUpdate, db: AsyncSession = Depends(get_db),
-            user_id: int = Depends(get_user_id), user_role: str = Depends(get_user_role)):
+                      user_id: int = Depends(get_user_id), user_role: str = Depends(get_user_role)):
     """
     Endpoint to update an existing user.
     
@@ -50,15 +53,16 @@ async def update_user(id_: int, user_data: UserUpdate, db: AsyncSession = Depend
        Returns the new changes to the user.
     """
     user = await update_existing_user(uid=id_, user_id=user_id,
-                user_role=user_role, user_data=user_data, db=db)
+                                      user_role=user_role, user_data=user_data, db=db)
     return {
         "message": "User was updated.",
         "user": user
     }
 
+
 @router.delete("/{id_}")
 async def delete_user(id_: int, db: AsyncSession = Depends(get_db),
-            user_id: int = Depends(get_user_id), user_role: str = Depends(get_user_role)):
+                      user_id: int = Depends(get_user_id), user_role: str = Depends(get_user_role)):
     """
     Endpoint to delete an existing user.
     
@@ -68,9 +72,10 @@ async def delete_user(id_: int, db: AsyncSession = Depends(get_db),
     deleted_user = await delete_existing_user(uid=id_, user_id=user_id, user_role=user_role, db=db)
     return deleted_user
 
+
 @router.patch("/{id_}")
 async def set_role(id_: int, new_role: NewRole, db: AsyncSession = Depends(get_db),
-            user_role: str = Depends(get_user_role)):
+                   user_role: str = Depends(get_user_role)):
     """
     Endpoint to change the role of an existing user.
     
@@ -80,9 +85,10 @@ async def set_role(id_: int, new_role: NewRole, db: AsyncSession = Depends(get_d
     user = await set_new_role(uid=id_, new_role=new_role, user_role=user_role, db=db)
     return user
 
+
 @router.get("/")
 async def get_all_users(db: AsyncSession = Depends(get_db),
-            user_role: str = Depends(get_user_role)):
+                        user_role: str = Depends(get_user_role)):
     """
     Endpoint to get all existing users.
     
