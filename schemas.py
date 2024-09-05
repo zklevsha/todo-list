@@ -4,8 +4,7 @@ This module defines the schemas used
 for data validation and serialization in the project.
 """
 from typing import Optional, Union
-from datetime import datetime
-from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict
+from pydantic import BaseModel, field_validator, EmailStr, ConfigDict
 from models import UserRole
 from crypto import hash_password
 
@@ -33,7 +32,6 @@ class TodoData(BaseModel):
     """
     title: str
     description: str
-    creation_date: int = Field(default_factory=lambda: int(datetime.now().timestamp()))
     is_finished: bool = False
 
 
@@ -51,8 +49,6 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: Union[str, bytes]
-    creation_date: int = Field(default_factory=lambda: int(datetime.now().timestamp()))
-    role: UserRole = UserRole.USER
 
     @field_validator('password')
     def hashed_password(cls, value: str) -> bytes:  # pylint: disable=E0213 #"cls" already fulfills that role

@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy import text
 from models import Todo
-from crud.users import handle_errors
+from crud.helpers import handle_errors, get_creation_date
 
 NO_ACCESS = 'You do not have permission to access this task.'
 
@@ -47,7 +47,10 @@ async def create_todo_task(todo: dict, user_id, db: AsyncSession):
     Returns:
         Status code and message of the transaction. 
     """
+    creation_date = get_creation_date()
     todo.update({"user_id": user_id})
+    todo.update({"creation_date": creation_date})
+
     new_task = Todo(**todo)
     db.add(new_task)
     query = sa.select(Todo.id).order_by(Todo.id.desc()).limit(1)
