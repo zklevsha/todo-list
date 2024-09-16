@@ -55,3 +55,12 @@ async def get_new_token(test_client, base_url, main_test_user) -> None:
     return access_token
 
 ADMIN_TOKEN = create_access_token(data={"user_id": 1, "user_role": "admin"})
+
+
+class TaskState:  # pylint: disable=R0903
+    """
+    Class to track the state of the task
+    to send the reminders.
+    """
+    def __init__(self):
+        self.task_executed = False

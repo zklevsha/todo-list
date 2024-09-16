@@ -58,7 +58,7 @@ async def create_todo_task(todo: dict, user_id, db: AsyncSession):
     task_id = result.scalar()
     await db.commit()
     return {'task_id': task_id, 'status': 'success',
-            'message': f'Task with ID {task_id} added successfully.'}
+            'message': 'Task added successfully.'}
 
 
 @handle_errors
@@ -85,11 +85,11 @@ async def update_todo_task(task_id: int, user_id, user_role, todo: dict, db: Asy
     await db.execute(updated_task)
 
     await db.commit()
-    return {'status': 'success', 'message': f'Task {task_id} updated successfully.'}
+    return {'status': 'success', 'message': 'Task updated successfully.'}
 
 
 @handle_errors
-async def get_all_todo_tasks(user_id, user_role, db: AsyncSession):
+async def get_all_todo_tasks(user_id, user_role, db: AsyncSession, reminders_flag: bool = False):
     """
     Function to get all existing task in the "todos" table.
     
@@ -98,6 +98,8 @@ async def get_all_todo_tasks(user_id, user_role, db: AsyncSession):
     """
     if user_role == "admin":
         query = sa.select(Todo)
+    elif reminders_flag:
+        query = sa.select(Todo).where(sa.and_(Todo.user_id == user_id, Todo.is_finished.is_(False)))
     else:
         query = sa.select(Todo).where(Todo.user_id == user_id)
     result = await db.execute(query)
@@ -137,7 +139,7 @@ async def delete_todo_task(task_id, user_id, user_role, db: AsyncSession):
 
     await db.delete(task_to_delete)
     await db.commit()
-    return {'status': 'success', 'message': f'Task {task_id} deleted successfully.'}
+    return {'status': 'success', 'message': 'Task deleted successfully.'}
 
 
 @handle_errors
@@ -188,10 +190,10 @@ async def mark_todo_task_completed(task_id: int, user_id, user_role,
                             detail=f'Task with ID {task_id} does not exist.')
     if todo.is_finished and finished:
         raise HTTPException(status_code=200,
-                            detail=f'Task with ID {task_id} is already set to completed.')
+                            detail=f'Task {task_id} is already set to completed.')
     if not todo.is_finished and not finished:
         raise HTTPException(status_code=200,
-                            detail=f'Task with ID {task_id} is already set to pending.')
+                            detail=f'Task {task_id} is already set to pending.')
     if todo.user_id != user_id and user_role != 'admin':
         raise HTTPException(status_code=403,
                             detail=NO_ACCESS)

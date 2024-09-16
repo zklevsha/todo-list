@@ -144,6 +144,25 @@ async def test_add_task(test_client) -> None:
     assert bad_no_auth_response.status_code == 401
 
 
+async def test_get_all_incomplete_tasks(test_client) -> None:
+    """
+    Testing getting all tasks.
+    """
+    # Testing with an empty list
+    auth_token = await get_new_token(test_client,
+                                     base_url=USER_API_URL, main_test_user=main_test_user)
+    headers = {
+        "Authorization": f"Bearer {auth_token}"
+    }
+    json_data = {"reminders_flag": "True"}
+    response = await test_client.post(f"{BASE_URL}/incomplete", json=json_data, headers=headers)
+    no_auth_response = await test_client.get(f"{BASE_URL}/incomplete")
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert no_auth_response.status_code == 401
+
+
 async def test_update_task(test_client) -> None:
     """
     Testing updating a task.

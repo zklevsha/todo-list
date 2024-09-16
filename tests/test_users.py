@@ -2,8 +2,12 @@
 test_users.py
 The module containing all user-related tests for the FastAPI application.
 """
-from helpers import generate_creds, login, get_new_token, ADMIN_TOKEN, get_new_user_id
+import asyncio
+import datetime
+import time_machine
+from helpers import generate_creds, login, get_new_token, ADMIN_TOKEN, get_new_user_id, TaskState
 from schemas import UserOutput
+from scheduler.scheduler import scheduler_main
 
 BASE_URL = "/api/v1/users"
 main_test_user = {}
@@ -119,12 +123,52 @@ async def test_get_all_users(test_client) -> None:
     assert response.status_code == 200
 
 
+async def test_set_reminders(test_client) -> None:
+    """
+    Testing the endpoint to set the daily reminders.
+    """
+    auth_token = await get_new_token(test_client, base_url=BASE_URL, main_test_user=main_test_user)
+    headers = {
+        "Authorization": f"Bearer {auth_token}"
+    }
+    json_data = {"reminder": "yes"}
+    response = await test_client.post(f"{BASE_URL}/reminders", json=json_data, headers=headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)
+
+    no_auth_user = await test_client.post(f"{BASE_URL}/reminders", json=json_data)
+    assert no_auth_user.status_code == 401
+
+
+async def test_send_reminders(test_client) -> None:
+    """
+    Testing the endpoint to set the daily reminders.
+    """
+    auth_token = await get_new_token(test_client, base_url=BASE_URL, main_test_user=main_test_user)
+    headers = {
+        "Authorization": f"Bearer {auth_token}"
+    }
+    response = await test_client.post(f"{BASE_URL}/send_reminders", headers=headers)
+    assert response.status_code == 403
+
+    no_auth_user = await test_client.post(f"{BASE_URL}/reminders")
+    assert no_auth_user.status_code == 401
+
+    headers = {
+        "Authorization": f"Bearer {ADMIN_TOKEN}"
+    }
+    response = await test_client.post(f"{BASE_URL}/send_reminders", headers=headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)
+
+
 async def test_delete_user(test_client) -> None:
     """
     Testing deleting a user.
     """
     user = await login(test_client, base_url=BASE_URL, main_test_user=main_test_user)
     user_id = user.user.id
+
     auth_token = await get_new_token(test_client, base_url=BASE_URL, main_test_user=main_test_user)
     headers = {
         "Authorization": f"Bearer {auth_token}"
@@ -150,3 +194,32 @@ async def test_delete_user(test_client) -> None:
     response = await test_client.delete(f"{BASE_URL}/{user_id}", headers=headers)
     assert response.status_code == 200
     assert isinstance(response.json(), dict)
+
+
+task_state = TaskState()
+
+
+async def support_scheduler(test_client) -> None:
+    """
+    Function that substitutes 'send_reminders_to_users'
+    to test the scheduler functionality.
+    """
+    headers = {
+        "Authorization": f"Bearer {ADMIN_TOKEN}"
+    }
+    response = await test_client.post(f"{BASE_URL}/send_reminders", headers=headers)
+    task_state.task_executed = True
+    print(f"Reminders sent, status code: {response.status_code}")
+
+
+@time_machine.travel(datetime.datetime(2024, 9, 21, 6, 0, tzinfo=datetime.timezone.utc))
+async def test_scheduler_main(test_client) -> None:
+    """
+    Function to test the scheduler. Here, the time is modified
+    with time_machine to trigger execution. A flag 'task_executed'
+    is used to track the status of the task to be able to assert it.
+    A brief timeout (1 s) is given before checking.
+    """
+    await scheduler_main(job=support_scheduler, client=test_client)
+    await asyncio.sleep(1)
+    assert task_state.task_executed, "Scheduler did not execute the task"
