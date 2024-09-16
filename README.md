@@ -106,14 +106,16 @@ uvicorn app:app --reload
 
 #### Users
 
-| Method  | Endpoint                   | Description        | Authentication Required |
-|---------|----------------------------|--------------------|-------------------------|
-| `POST`  | `/api/v1/users/register`   | Create User        | No                      |
-| `GET`   | `/api/v1/users/{id_}`      | Get User           | Yes                     |
-| `PUT`   | `/api/v1/users/{id_}`      | Update User        | Yes (Owner or Admin)    |
-| `DELETE`| `/api/v1/users/{id_}`      | Delete User        | Yes (Owner or Admin)    |
-| `PATCH` | `/api/v1/users/{id_}`      | Set Role           | Yes (Admin only)        |
-| `GET`   | `/api/v1/users/`           | Get All Users      | Yes (Admin only)        |
+| Method  | Endpoint                       | Description               | Authentication Required |
+|---------|--------------------------------|---------------------------|-------------------------|
+| `POST`  | `/api/v1/users/register`       | Create User               | No                      |
+| `GET`   | `/api/v1/users/{id_}`          | Get User                  | Yes                     |
+| `PUT`   | `/api/v1/users/{id_}`          | Update User               | Yes (Owner or Admin)    |
+| `DELETE`| `/api/v1/users/{id_}`          | Delete User               | Yes (Owner or Admin)    |
+| `PATCH` | `/api/v1/users/{id_}`          | Set Role                  | Yes (Admin only)        |
+| `GET`   | `/api/v1/users/`               | Get All Users             | Yes (Admin only)        |
+| `GET`   | `/api/v1/users/send_reminders` | Send daily reminders      | Yes (Admin only)        |
+| `GET`   | `/api/v1/users/set_reminders`  | Configure daily reminders | Yes (Owner or Admin)        |
 
 #### Authentication
 
@@ -129,6 +131,10 @@ Example updating the email of user with ID 2 using curl:
 ```bash
 curl -i localhost:8000/api/v1/users/2 -XPUT -H 'Content-Type: application/json' -d '{"email":"newemail@test.com"}' -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." -w '\n'
 ```
+
+## Daily Reminders
+
+The daily reminder feature sends an automated email to users who have the `daily_reminder` option enabled. It aggregates all incomplete tasks for each user and sends a summary in the email body. The reminders are triggered via a background scheduler that runs at a configured interval. The scheduler calls the `/send_reminders` API, which queries the database for users with pending tasks and sends the appropriate emails.
 
 ## Contributions
 

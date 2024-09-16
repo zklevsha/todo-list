@@ -67,7 +67,7 @@ async def fixture_db():
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def clean_test_db(db: AsyncSession):
     """
-    Function to clean the test DB before each test.
+    Function to clean the test DB before each test run.
     """
     query = sa.text("DELETE FROM users WHERE id > 1")
     await db.execute(query)

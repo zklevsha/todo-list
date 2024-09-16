@@ -181,7 +181,7 @@ async def set_new_role(uid, new_role, user_role, db: AsyncSession):
     Function to change the role of an existing user (only for admin users).
     
     Returns:
-        Status code and message of the transaction.
+        Status and message of the transaction.
     """
     query = sa.select(User).where(User.id == uid)
     result = await db.execute(query)
@@ -211,7 +211,7 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
     Function to set the reminders on or off for the user.
 
     Returns:
-        Status code and message of the transaction.
+        Message of the transaction.
     """
     query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
@@ -234,10 +234,10 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
 @handle_errors
 async def send_reminders(user_role, db: AsyncSession):
     """
-    Function to set the reminders on or off for the user.
+    Function to send the reminders to users with this function
 
     Returns:
-        Status code and message of the transaction.
+        Message of the transaction.
     """
     if user_role != 'admin':
         raise HTTPException(status_code=403,
