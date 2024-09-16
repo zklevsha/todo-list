@@ -6,7 +6,7 @@ from typing import Union
 from fastapi import APIRouter, Depends
 from crud.tasks import create_todo_task, update_todo_task, get_all_todo_tasks, \
     get_todo_task_by_id, delete_todo_task, mark_todo_task_completed
-from schemas import ConnectionResponse, TodoData, IsFinished
+from schemas import ConnectionResponse, TodoData, IsFinished, RemindersFlag
 from routers.db_functions import get_db, AsyncSession
 from oauth import get_current_user
 
@@ -36,7 +36,8 @@ async def get_user_role(user_data: tuple = Depends(get_current_user)) -> str:
 
 
 @router.get("/")
-async def get_all_todos(db: AsyncSession = Depends(get_db), user_id: int = Depends(get_user_id),
+async def get_all_todos(db: AsyncSession = Depends(get_db),
+                        user_id: int = Depends(get_user_id),
                         user_role: str = Depends(get_user_role)) -> Union[list, dict]:
     """
     Endpoint to get the list of all todos.
@@ -45,6 +46,22 @@ async def get_all_todos(db: AsyncSession = Depends(get_db), user_id: int = Depen
        Returns the list of elements.
     """
     result = await get_all_todo_tasks(user_id=user_id, user_role=user_role, db=db)
+    return result
+
+
+@router.post("/incomplete", status_code=200)
+async def get_all_incomplete_todos(reminders_flag: RemindersFlag,
+                                   db: AsyncSession = Depends(get_db),
+                                   user_id: int = Depends(get_user_id),
+                                   user_role: str = Depends(get_user_role)) -> Union[list, dict]:
+    """
+    Endpoint to get the list of all todos.
+
+    Returns:
+       Returns the list of elements.
+    """
+    result = await get_all_todo_tasks(user_id=user_id, user_role=user_role, db=db,
+                                      reminders_flag=reminders_flag.reminders_flag)
     return result
 
 

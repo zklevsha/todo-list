@@ -4,8 +4,8 @@ Routes are configured for the users endpoints.
 """
 from fastapi import APIRouter, Depends
 from crud.users import create_new_user, get_existing_user, update_existing_user, \
-    delete_existing_user, get_all_existing_users, set_new_role
-from schemas import UserOutput, UserCreate, UserUpdate, NewRole
+    delete_existing_user, get_all_existing_users, set_new_role, set_reminder, send_reminders
+from schemas import UserOutput, UserCreate, UserUpdate, NewRole, DailyReminder
 from routers.db_functions import get_db, AsyncSession
 from routers.tasks import get_user_id, get_user_role
 
@@ -97,3 +97,31 @@ async def get_all_users(db: AsyncSession = Depends(get_db),
     """
     users = await get_all_existing_users(user_role=user_role, db=db)
     return users
+
+
+@router.post("/reminders", status_code=200)
+async def set_daily_reminder(reminder: DailyReminder,
+                             db: AsyncSession = Depends(get_db),
+                             user_id: int = Depends(get_user_id)):
+    """
+    Endpoint to set the daily reminders.
+
+    Returns:
+        Returns info about the transaction.
+    """
+    reminder = reminder.model_dump()['reminder']
+    result = await set_reminder(user_id=user_id, reminder_set=reminder, db=db)
+    return result
+
+
+@router.post("/send_reminders", status_code=200)
+async def send_daily_reminder(db: AsyncSession = Depends(get_db),
+                              user_role: str = Depends(get_user_role)):
+    """
+    Endpoint to send the daily reminders to all users with this option.
+
+    Returns:
+        Returns info about the transaction.
+    """
+    result = await send_reminders(user_role=user_role, db=db)
+    return result

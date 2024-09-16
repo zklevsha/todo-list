@@ -5,7 +5,7 @@ for data validation and serialization in the project.
 """
 from typing import Optional, Union
 from pydantic import BaseModel, field_validator, EmailStr, ConfigDict
-from models import UserRole
+from models import UserRole, ReminderConfig
 from crypto import hash_password
 
 
@@ -119,3 +119,17 @@ class NewRole(BaseModel):
     Model to update the user role.
     """
     role: UserRole
+
+
+class DailyReminder(BaseModel):
+    """
+    Model to enable/disable the daily reminders.
+    """
+    reminder: ReminderConfig = ReminderConfig.NO
+
+
+class RemindersFlag(BaseModel):
+    """
+    Model for a basic response containing true/false values.
+    """
+    reminders_flag: bool
