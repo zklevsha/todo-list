@@ -1,6 +1,6 @@
 """
 scheduler.py
-Module to send the daily reminders using the scheduler.
+Module to send the daily reminders using the apscheduler.
 """
 from datetime import timezone
 import httpx
