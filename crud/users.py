@@ -223,10 +223,10 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
         raise HTTPException(status_code=200,
                             detail='Reminders are already disabled for this user')
 
-    completed_task = (
+    reminders_config = (
         sa.update(User).where(User.id == user_id).values(daily_reminder=reminder_set)
     )
-    await db.execute(completed_task)
+    await db.execute(reminders_config)
     await db.commit()
     return {'status': 'success', 'message': 'Reminders successfully configured.'}
 
