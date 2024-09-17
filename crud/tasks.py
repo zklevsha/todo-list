@@ -89,7 +89,7 @@ async def update_todo_task(task_id: int, user_id, user_role, todo: dict, db: Asy
 
 
 @handle_errors
-async def get_all_todo_tasks(user_id, user_role, db: AsyncSession, reminders_flag: bool = False):
+async def get_all_todo_tasks(user_id, user_role, db: AsyncSession):
     """
     Function to get all existing task in the "todos" table.
     
@@ -98,8 +98,6 @@ async def get_all_todo_tasks(user_id, user_role, db: AsyncSession, reminders_fla
     """
     if user_role == "admin":
         query = sa.select(Todo)
-    elif reminders_flag:
-        query = sa.select(Todo).where(sa.and_(Todo.user_id == user_id, Todo.is_finished.is_(False)))
     else:
         query = sa.select(Todo).where(Todo.user_id == user_id)
     result = await db.execute(query)

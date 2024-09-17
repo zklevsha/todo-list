@@ -109,13 +109,13 @@ uvicorn app:app --reload
 | Method  | Endpoint                       | Description               | Authentication Required |
 |---------|--------------------------------|---------------------------|-------------------------|
 | `POST`  | `/api/v1/users/register`       | Create User               | No                      |
-| `GET`   | `/api/v1/users/{id_}`          | Get User                  | Yes                     |
+| `GET`   | `/api/v1/users/{id_}`          | Get User                  | No                      |
 | `PUT`   | `/api/v1/users/{id_}`          | Update User               | Yes (Owner or Admin)    |
 | `DELETE`| `/api/v1/users/{id_}`          | Delete User               | Yes (Owner or Admin)    |
 | `PATCH` | `/api/v1/users/{id_}`          | Set Role                  | Yes (Admin only)        |
 | `GET`   | `/api/v1/users/`               | Get All Users             | Yes (Admin only)        |
+| `GET`   | `/api/v1/users/reminders`  | Configure daily reminders | Yes (Owner or Admin)    |
 | `GET`   | `/api/v1/users/send_reminders` | Send daily reminders      | Yes (Admin only)        |
-| `GET`   | `/api/v1/users/set_reminders`  | Configure daily reminders | Yes (Owner or Admin)        |
 
 #### Authentication
 
@@ -127,14 +127,82 @@ uvicorn app:app --reload
 
 To access endpoints that require authentication, you need to include a valid JWT token in the `Authorization` header as a Bearer token. The "login" endpoint generates a new token with a default expiration of 7 days. 
 
-Example updating the email of user with ID 2 using curl:
+Example of a user login request using curl:
 ```bash
-curl -i localhost:8000/api/v1/users/2 -XPUT -H 'Content-Type: application/json' -d '{"email":"newemail@test.com"}' -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." -w '\n'
+curl -i localhost:8000/api/v1/login -XPOST -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=USERNAME&password=PASSWORD' -w '\n'
 ```
+The above will generate a new token. 
 
 ## Daily Reminders
 
 The daily reminder feature sends an automated email to users who have the `daily_reminder` option enabled. It aggregates all incomplete tasks for each user and sends a summary in the email body. The reminders are triggered via a background scheduler that runs at a configured interval. The scheduler calls the `/send_reminders` API, which queries the database for users with pending tasks and sends the appropriate emails.
+
+## Sample Requests (Curl)
+
+Register a new user:
+```bash
+curl -i localhost:8000/api/v1/users/register -XPOST -H 'Content-Type: application/json' -d '{"username": "user", "email": "test@test.com", "password": "password"}' -w '\n'
+```
+
+Get user with ID 2:
+```bash
+curl -i localhost:8000/api/v1/users/2 -XGET -H 'Content-Type: application/json' -w '\n'
+```
+
+Update user - in this case, the email of user with ID 2:
+```bash
+curl -i localhost:8000/api/v1/users/2 -XPUT -H 'Content-Type: application/json' -d '{"email":"test2@test.com"}' -H "Authorization: Bearer $token" -w '\n'
+```
+
+Delete user with ID 2:
+```bash
+curl -i localhost:8000/api/v1/users/2 -XDELETE -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
+```
+
+Set the "user" role to user with ID 2:
+```bash
+curl -i localhost:8000/api/v1/users/2 -XPATCH -H 'Content-Type: application/json' -d '{"role":"user"}' -H "Authorization: Bearer $token" -w '\n'
+```
+
+Get all users (as admin):
+```bash
+curl -i localhost:8000/api/v1/users/ -XGET -H 'Content-Type: application/json' -H "Authorization: Bearer $admin_token" -w '\n'
+```
+
+Enable the daily reminders:
+```bash
+curl -i localhost:8000/api/v1/users/reminders -XPOST -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"reminder":"yes"}' -w '\n'
+```
+
+Get all tasks:
+```bash
+curl -i localhost:8000/api/v1/tasks/ -XGET -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
+```
+
+Add a new task:
+```bash
+curl -i localhost:8000/api/v1/tasks/ -XPOST  -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"title":"Title", "description":"Description", "is_finished": "False"}' -w '\n'
+```
+
+Get task by ID:
+```bash
+curl -i localhost:8000/api/v1/tasks/1 -XGET -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
+```
+
+Update a task:
+```bash
+curl -i localhost:8000/api/v1/tasks/1 -XPUT -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"title":"NewTitle", "description":"NewDescription", "is_finished": "True"}' -w '\n'
+```
+
+Mark task as completed:
+```bash
+curl -i localhost:8000/api/v1/tasks/1/finish -XPUT -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"is_finished": "True"}' -w '\n'
+```
+
+Delete a task:
+```bash
+curl -i localhost:8000/api/v1/tasks/1 -XDELETE -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
+```
 
 ## Contributions
 

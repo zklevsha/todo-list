@@ -49,22 +49,6 @@ async def get_all_todos(db: AsyncSession = Depends(get_db),
     return result
 
 
-@router.post("/incomplete", status_code=200)
-async def get_all_incomplete_todos(reminders_flag: RemindersFlag,
-                                   db: AsyncSession = Depends(get_db),
-                                   user_id: int = Depends(get_user_id),
-                                   user_role: str = Depends(get_user_role)) -> Union[list, dict]:
-    """
-    Endpoint to get the list of all todos.
-
-    Returns:
-       Returns the list of elements.
-    """
-    result = await get_all_todo_tasks(user_id=user_id, user_role=user_role, db=db,
-                                      reminders_flag=reminders_flag.reminders_flag)
-    return result
-
-
 @router.get("/{task_id}")
 async def get_task_id(task_id: int, db: AsyncSession = Depends(get_db),
                       user_id: int = Depends(get_user_id),
