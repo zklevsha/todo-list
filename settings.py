@@ -7,6 +7,9 @@ from dotenv import dotenv_values
 from crypto import hash_password, generate_random_string
 
 config = dotenv_values(".env")
+app_url = config.get('app_url') or 'localhost'
+app_url = f'http://{app_url}'
+
 host = config.get('db_host')
 database = config.get('db_database')
 user = config.get('db_user')

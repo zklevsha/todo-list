@@ -6,7 +6,7 @@ from typing import Union
 from fastapi import APIRouter, Depends
 from crud.tasks import create_todo_task, update_todo_task, get_all_todo_tasks, \
     get_todo_task_by_id, delete_todo_task, mark_todo_task_completed
-from schemas import ConnectionResponse, TodoData, IsFinished, RemindersFlag
+from schemas import ConnectionResponse, TodoData, IsFinished
 from routers.db_functions import get_db, AsyncSession
 from oauth import get_current_user
 

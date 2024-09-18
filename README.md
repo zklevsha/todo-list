@@ -6,6 +6,7 @@ A simple To-Do list application built with FastAPI, allowing users to create, re
 
 * Python 3.11
 * Python 3.11 devel package (python3.11-devel for Fedora-based distros, python3.11-dev Debian-based)
+* Poetry (python-poetry) for managing dependencies
 * Docker-compose
 
 ## Features
@@ -15,6 +16,7 @@ A simple To-Do list application built with FastAPI, allowing users to create, re
 - Assign tasks to users
 - Set task completion status
 - Role-based access control (admin and user roles)
+- Daily reminders for incomplete tasks
 
 ## Setup
 
@@ -22,15 +24,18 @@ A simple To-Do list application built with FastAPI, allowing users to create, re
 
 To create and enter the virtual environment, run:
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+poetry shell
 ```
 
 ### Step 2: Install the dependencies
-Install the dependencies from the `requirements.txt` file:
+Install the dependencies:
 
 ```bash
-pip install -r requirements.txt
+poetry install
+```
+If you don't want to install the "dev" dependencies, run:
+```bash
+poetry install --only main
 ```
 
 ### Step 3: Configure ENV variables
@@ -38,6 +43,8 @@ pip install -r requirements.txt
 Create a file ".env" with the following variables:
 
 ```bash
+app_url=localhost (the app domain, optional and defaults to localhost)
+
 db_host=HOST
 db_database=DATABASE
 db_user=DB_USER
@@ -144,11 +151,6 @@ Register a new user:
 curl -i localhost:8000/api/v1/users/register -XPOST -H 'Content-Type: application/json' -d '{"username": "user", "email": "test@test.com", "password": "password"}' -w '\n'
 ```
 
-Get user with ID 2:
-```bash
-curl -i localhost:8000/api/v1/users/2 -XGET -H 'Content-Type: application/json' -w '\n'
-```
-
 Update user - in this case, the email of user with ID 2:
 ```bash
 curl -i localhost:8000/api/v1/users/2 -XPUT -H 'Content-Type: application/json' -d '{"email":"test2@test.com"}' -H "Authorization: Bearer $token" -w '\n'
@@ -157,16 +159,6 @@ curl -i localhost:8000/api/v1/users/2 -XPUT -H 'Content-Type: application/json' 
 Delete user with ID 2:
 ```bash
 curl -i localhost:8000/api/v1/users/2 -XDELETE -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
-```
-
-Set the "user" role to user with ID 2:
-```bash
-curl -i localhost:8000/api/v1/users/2 -XPATCH -H 'Content-Type: application/json' -d '{"role":"user"}' -H "Authorization: Bearer $token" -w '\n'
-```
-
-Get all users (as admin):
-```bash
-curl -i localhost:8000/api/v1/users/ -XGET -H 'Content-Type: application/json' -H "Authorization: Bearer $admin_token" -w '\n'
 ```
 
 Enable the daily reminders:
@@ -184,25 +176,11 @@ Add a new task:
 curl -i localhost:8000/api/v1/tasks/ -XPOST  -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"title":"Title", "description":"Description", "is_finished": "False"}' -w '\n'
 ```
 
-Get task by ID:
-```bash
-curl -i localhost:8000/api/v1/tasks/1 -XGET -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
-```
-
-Update a task:
-```bash
-curl -i localhost:8000/api/v1/tasks/1 -XPUT -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"title":"NewTitle", "description":"NewDescription", "is_finished": "True"}' -w '\n'
-```
-
 Mark task as completed:
 ```bash
 curl -i localhost:8000/api/v1/tasks/1/finish -XPUT -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -d '{"is_finished": "True"}' -w '\n'
 ```
 
-Delete a task:
-```bash
-curl -i localhost:8000/api/v1/tasks/1 -XDELETE -H 'Content-Type: application/json' -H "Authorization: Bearer $token" -w '\n'
-```
 
 ## Contributions
 
@@ -216,13 +194,13 @@ We use `pytest` for running tests. To run the tests, follow these steps:
 
 Make sure you have all the necessary dependencies installed.
 ```bash
-pip install -r requirements-dev.txt
+poetry install --with dev
 ```
 
 2.  **Run the tests**:
 To run all the tests, run:
 ```bash
-pytest -v
+poetry run pytest -v
 ```
 
 ### Running Linter Checks
@@ -231,13 +209,13 @@ To run linter checks, follow these steps:
 
 1.  **Install dependencies**:
 
-If not done in the previous step, install the dependencies using the requirements-dev.txt file:
+If not done in the previous step, install the dependencies:
 ```bash
-pip install -r requirements-dev.txt
+poetry install --with dev
 ```
 
 2.  **Run `pylint`**:
 
 ```bash
-pylint *.py **/*.py
+poetry run pylint *.py **/*.py
 ```
