@@ -126,10 +126,3 @@ class DailyReminder(BaseModel):
     Model to enable/disable the daily reminders.
     """
     reminder: ReminderConfig = ReminderConfig.NO
-
-
-class RemindersFlag(BaseModel):
-    """
-    Model for a basic response containing true/false values.
-    """
-    reminders_flag: bool

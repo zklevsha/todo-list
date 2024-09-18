@@ -7,9 +7,10 @@ import httpx
 from fastapi import HTTPException
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from oauth import create_access_token
+from settings import app_url
 
 ADMIN_TOKEN = create_access_token(data={"user_id": 1, "user_role": "admin"})
-URL = "http://localhost:8000/api/v1/users/send_reminders"
+URL = f"{app_url}:8000/api/v1/users/send_reminders"
 HEADERS = {
     "Authorization": f"Bearer {ADMIN_TOKEN}"
 }
