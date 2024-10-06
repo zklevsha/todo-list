@@ -36,7 +36,8 @@ async def get_user_role(user_data: tuple = Depends(get_current_user)) -> str:
 
 
 @router.get("/")
-async def get_all_todos(db: AsyncSession = Depends(get_db), user_id: int = Depends(get_user_id),
+async def get_all_todos(db: AsyncSession = Depends(get_db),
+                        user_id: int = Depends(get_user_id),
                         user_role: str = Depends(get_user_role)) -> Union[list, dict]:
     """
     Endpoint to get the list of all todos.

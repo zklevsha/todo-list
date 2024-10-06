@@ -4,15 +4,16 @@ This module handles all the functions called by the app.py module,
 but focused on user-related DB operations.
 """
 import sqlalchemy as sa
-
 from fastapi import HTTPException
+from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import or_
-from models import User
+from sqlalchemy import or_, func, String, cast
+from models import User, Todo
 from schemas import UserUpdate, UserRole
 from crypto import verify_password
 from oauth import create_access_token
-from crud.helpers import handle_errors, get_creation_date
+from crud.helpers import handle_errors, get_creation_date, send_mail
+from settings import app_url
 
 NOT_AUTHORIZED = 'You are not authorized to perform this action.'
 
@@ -180,7 +181,7 @@ async def set_new_role(uid, new_role, user_role, db: AsyncSession):
     Function to change the role of an existing user (only for admin users).
     
     Returns:
-        Status code and message of the transaction.
+        Status and message of the transaction.
     """
     query = sa.select(User).where(User.id == uid)
     result = await db.execute(query)
@@ -202,3 +203,68 @@ async def set_new_role(uid, new_role, user_role, db: AsyncSession):
     await db.commit()
     return {'status': 'success',
             'message': f'User {uid} successfully changed to {new_role.role}.'}
+
+
+@handle_errors
+async def set_reminder(user_id, reminder_set, db: AsyncSession):
+    """
+    Function to set the reminders on or off for the user.
+
+    Returns:
+        Message of the transaction.
+    """
+    query = sa.select(User).where(User.id == user_id)
+    result = await db.execute(query)
+    user = result.scalar()
+    if user.daily_reminder == reminder_set and reminder_set is True:
+        raise HTTPException(status_code=400,
+                            detail='Reminders are already enabled for this user')
+    if user.daily_reminder == reminder_set and reminder_set is False:
+        raise HTTPException(status_code=400,
+                            detail='Reminders are already disabled for this user')
+
+    reminders_config = (
+        sa.update(User).where(User.id == user_id).values(daily_reminder=reminder_set)
+    )
+    await db.execute(reminders_config)
+    await db.commit()
+    return {'status': 'success', 'message': 'Reminders successfully configured.'}
+
+
+@handle_errors
+async def send_reminders(user_role, db: AsyncSession):
+    """
+    Function to send the reminders to users with this function
+
+    Returns:
+        Message of the transaction.
+    """
+    if user_role != 'admin':
+        raise HTTPException(status_code=403,
+                            detail=NOT_AUTHORIZED)
+    users = aliased(User)
+    todos = aliased(Todo)
+    tasks_url = app_url + ":8080/api/v1/tasks/"
+    query = sa.select(users.email, func.string_agg(
+        'Title: ' + todos.title + '\nDescription: ' + todos.description +
+        '\nLink: ' + tasks_url + cast(todos.id, String),
+        '\n\n'
+    ).label('tasks')).join(todos, todos.user_id == users.id).where(
+        users.daily_reminder.is_(True), todos.is_finished.is_(False)).group_by(users.email)
+    result = await db.execute(query)
+    data = result.fetchall()
+
+    for email, tasks in data:
+        to_address = email
+        subject = "Subject: Daily Reminder"
+        email_body = (
+            f"Dear User,\n\n"
+            f"This is a daily reminder that there are incomplete tasks, please check them out:\n\n"
+            f"{tasks}\n\n"
+            f"Best regards,\n"
+            f"The Team"
+        )
+
+        send_mail(to_address=to_address, subject=subject, text=email_body)
+
+    return {'status': 'success', 'message': 'Reminders were sent.'}

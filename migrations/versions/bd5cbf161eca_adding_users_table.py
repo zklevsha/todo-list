@@ -38,6 +38,7 @@ def upgrade():
     sa.Column('password', sa.String(length=255), nullable=False),
     sa.Column('creation_date', sa.Integer(), nullable=False),
     sa.Column('role', user_role_enum, nullable=False),
+    sa.Column('daily_reminder', sa.Boolean, nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.alter_column('todos', 'title',

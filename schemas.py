@@ -119,3 +119,10 @@ class NewRole(BaseModel):
     Model to update the user role.
     """
     role: UserRole
+
+
+class DailyReminder(BaseModel):
+    """
+    Model to enable/disable the daily reminders.
+    """
+    reminder: bool = False
