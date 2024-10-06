@@ -5,14 +5,15 @@ but focused on user-related DB operations.
 """
 import sqlalchemy as sa
 from fastapi import HTTPException
+from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import or_, text
-from models import User
-from schemas import UserUpdate, UserRole, ReminderConfig
+from sqlalchemy import or_, func, String, cast
+from models import User, Todo
+from schemas import UserUpdate, UserRole
 from crypto import verify_password
 from oauth import create_access_token
-from crud.helpers import handle_errors, get_creation_date
-from settings import admin_email
+from crud.helpers import handle_errors, get_creation_date, send_mail
+from settings import app_url
 
 NOT_AUTHORIZED = 'You are not authorized to perform this action.'
 
@@ -28,7 +29,6 @@ async def create_new_user(user_data: dict, db: AsyncSession):
     creation_date = get_creation_date()
     user_data['creation_date'] = creation_date
     user_data['role'] = UserRole.USER
-    user_data['daily_reminder'] = ReminderConfig.NO
     new_user = User(**user_data)
 
     query = sa.select(User).where(
@@ -216,11 +216,11 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
     query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
     user = result.scalar()
-    if user.daily_reminder == reminder_set and reminder_set == "yes":
-        raise HTTPException(status_code=200,
+    if user.daily_reminder == reminder_set and reminder_set is True:
+        raise HTTPException(status_code=400,
                             detail='Reminders are already enabled for this user')
-    if user.daily_reminder == reminder_set and reminder_set == "no":
-        raise HTTPException(status_code=200,
+    if user.daily_reminder == reminder_set and reminder_set is False:
+        raise HTTPException(status_code=400,
                             detail='Reminders are already disabled for this user')
 
     reminders_config = (
@@ -242,22 +242,22 @@ async def send_reminders(user_role, db: AsyncSession):
     if user_role != 'admin':
         raise HTTPException(status_code=403,
                             detail=NOT_AUTHORIZED)
-    query = text("CREATE TEMPORARY TABLE temp_user_tasks AS SELECT u.email, "
-                 "STRING_AGG('Title: ' || t.title || "
-                 "E'\nDescription: ' || t.description || E'\n', E'\n') "
-                 "AS tasks FROM users u JOIN todos t ON u.id = "
-                 "t.user_id WHERE u.daily_reminder = 'YES' "
-                 "AND t.is_finished = FALSE GROUP BY u.email;")
-    await db.execute(query)
-    query_data = text("SELECT * FROM temp_user_tasks;")
-    data = await db.execute(query_data)
-    data = data.fetchall()
+    users = aliased(User)
+    todos = aliased(Todo)
+    tasks_url = app_url + ":8080/api/v1/tasks/"
+    query = sa.select(users.email, func.string_agg(
+        'Title: ' + todos.title + '\nDescription: ' + todos.description +
+        '\nLink: ' + tasks_url + cast(todos.id, String),
+        '\n\n'
+    ).label('tasks')).join(todos, todos.user_id == users.id).where(
+        users.daily_reminder.is_(True), todos.is_finished.is_(False)).group_by(users.email)
+    result = await db.execute(query)
+    data = result.fetchall()
 
     for email, tasks in data:
-        email_sender = admin_email
-        email_receiver = email
+        to_address = email
+        subject = "Subject: Daily Reminder"
         email_body = (
-            f"Subject: Daily Reminder\n\n"
             f"Dear User,\n\n"
             f"This is a daily reminder that there are incomplete tasks, please check them out:\n\n"
             f"{tasks}\n\n"
@@ -265,11 +265,6 @@ async def send_reminders(user_role, db: AsyncSession):
             f"The Team"
         )
 
-        # Mocking the email function.
-        print(f"Email sender: {email_sender}")
-        print(f"Email receiver: {email_receiver}")
-        print("Body of email:")
-        print(email_body)
-        print("="*40)
+        send_mail(to_address=to_address, subject=subject, text=email_body)
 
     return {'status': 'success', 'message': 'Reminders were sent.'}
