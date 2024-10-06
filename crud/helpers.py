@@ -5,8 +5,10 @@ A support module containing useful functions.
 import logging
 from datetime import datetime
 from functools import wraps
+import mailtrap as mt
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
+from settings import mail_token, mail_from_address
 
 
 def get_creation_date():
@@ -21,6 +23,7 @@ def handle_errors(func):
     """
     Decorator function to maintain consistent error handling.
     """
+
     @wraps(func)
     async def wrapper(*args, db, **kwargs):
         try:
@@ -45,3 +48,19 @@ def handle_errors(func):
             await db.close()
 
     return wrapper
+
+
+def send_mail(to_address, subject, text):
+    """
+    Send emails using the Mailtrap service using the API token configured
+    in `mail_token`.
+    """
+    mail = mt.Mail(
+        sender=mt.Address(email=mail_from_address, name="Todo-app"),
+        to=[mt.Address(email=to_address)],
+        subject=subject,
+        text=text
+    )
+    client = mt.MailtrapClient(token=mail_token)
+
+    client.send(mail)

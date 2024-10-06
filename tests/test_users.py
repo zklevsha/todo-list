@@ -3,7 +3,7 @@ test_users.py
 The module containing all user-related tests for the FastAPI application.
 """
 import asyncio
-import datetime
+from datetime import datetime, timezone
 import time_machine
 from helpers import generate_creds, login, get_new_token,\
     ADMIN_TOKEN, get_new_user_id, TaskState, Headers
@@ -123,10 +123,16 @@ async def test_set_reminders(test_client) -> None:
     """
     header.auth_token = await get_new_token(test_client,
                                             base_url=BASE_URL, main_test_user=main_test_user)
-    json_data = {"reminder": "yes"}
+    json_data = {"reminder": "true"}
     response = await test_client.post(f"{BASE_URL}/reminders",
                                       json=json_data, headers=header.headers)
     assert response.status_code == 200
+    assert isinstance(response.json(), dict)
+
+    # Testing when the reminders are already enabled
+    response = await test_client.post(f"{BASE_URL}/reminders",
+                                      json=json_data, headers=header.headers)
+    assert response.status_code == 400
     assert isinstance(response.json(), dict)
 
     no_auth_user = await test_client.post(f"{BASE_URL}/reminders", json=json_data)
@@ -192,7 +198,7 @@ async def support_scheduler(test_client) -> None:
     print(f"Reminders sent, status code: {response.status_code}")
 
 
-@time_machine.travel(datetime.datetime(2024, 9, 21, 6, 0, tzinfo=datetime.timezone.utc))
+@time_machine.travel(datetime(2024, 9, 21, 9, 0, tzinfo=timezone.utc))
 async def test_scheduler_main(test_client) -> None:
     """
     Function to test the scheduler. Here, the time is modified

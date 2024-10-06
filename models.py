@@ -3,7 +3,7 @@ models.py
 This module contains the model for the "todos" database.
 """
 import enum
-from sqlalchemy import Integer, String, Enum, LargeBinary, ForeignKey
+from sqlalchemy import Integer, String, Enum, LargeBinary, ForeignKey, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -21,14 +21,6 @@ class UserRole(str, enum.Enum):
     USER = "user"
 
 
-class ReminderConfig(str, enum.Enum):
-    """
-    Class for the reminders.
-    """
-    YES = "yes"
-    NO = "no"
-
-
 class User(Base):  # pylint: disable=R0903
     """
     Represents the 'users' table in the database.
@@ -39,9 +31,8 @@ class User(Base):  # pylint: disable=R0903
     email: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     password: Mapped[bytes] = mapped_column(LargeBinary(255), nullable=False)
     creation_date: Mapped[int] = mapped_column(Integer, nullable=False)
-    daily_reminder: Mapped[ReminderConfig] = mapped_column(Enum(ReminderConfig),
-                                                           insert_default=ReminderConfig.NO,
-                                                           nullable=False)
+    daily_reminder: Mapped[bool] = mapped_column(Boolean, insert_default=False,
+                                                 nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole),
                                            insert_default=UserRole.USER, nullable=False)
 
