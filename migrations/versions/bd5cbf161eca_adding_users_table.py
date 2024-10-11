@@ -37,6 +37,7 @@ def upgrade():
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
     sa.Column('creation_date', sa.Integer(), nullable=False),
+    sa.Column('timezone', sa.String(length=30), nullable=False),
     sa.Column('role', user_role_enum, nullable=False),
     sa.Column('daily_reminder', sa.Boolean, nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -62,6 +63,7 @@ def upgrade():
         email=admin_email,
         password=admin_hashed_password, 
         role='ADMIN',
+        timezone='UTC',
         creation_date=(int(datetime.now().timestamp()))
     )
 

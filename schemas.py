@@ -5,6 +5,7 @@ for data validation and serialization in the project.
 """
 from typing import Optional, Union
 from pydantic import BaseModel, field_validator, EmailStr, ConfigDict
+import pytz
 from models import UserRole
 from crypto import hash_password
 
@@ -49,6 +50,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: Union[str, bytes]
+    timezone: Optional[str] = 'UTC'
 
     @field_validator('password')
     def hashed_password(cls, value: str) -> bytes:  # pylint: disable=E0213 #"cls" already fulfills that role
@@ -56,6 +58,15 @@ class UserCreate(BaseModel):
         Function to return a hashed password. 
         """
         return hash_password(value)
+
+    @field_validator('timezone')
+    def validate_timezone(cls, value): # pylint: disable=E0213 #"cls" already fulfills that role
+        """
+        Function to return validate the timezone.
+        """
+        if value not in pytz.all_timezones:
+            raise ValueError(f"Invalid timezone: {value}")
+        return value
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -67,6 +78,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
+    timezone: Optional[str] = None
 
     @field_validator('password')
     def hashed_password(cls, value: Optional[str]) -> Optional[bytes]:  # pylint: disable=E0213
@@ -75,6 +87,15 @@ class UserUpdate(BaseModel):
         """
         if value is not None:
             return hash_password(value)
+        return value
+
+    @field_validator('timezone')
+    def validate_timezone(cls, value): # pylint: disable=E0213 #"cls" already fulfills that role
+        """
+        Function to return validate the timezone.
+        """
+        if value not in pytz.all_timezones:
+            raise ValueError(f"Invalid timezone: {value}")
         return value
 
 
@@ -126,3 +147,10 @@ class DailyReminder(BaseModel):
     Model to enable/disable the daily reminders.
     """
     reminder: bool = False
+
+
+class TzInput(BaseModel):
+    """
+    Model to send the timezone.
+    """
+    timezone: str
