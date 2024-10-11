@@ -134,11 +134,10 @@ async def send_daily_reminder(timezone: TzInput, db: AsyncSession = Depends(get_
 async def tz_list(db: AsyncSession = Depends(get_db),
                   user_role: str = Depends(get_user_role)):
     """
-    Endpoint to get the email of users with the reminder option enabled
-    grouped by timezone.
+    Endpoint to get all timezones
 
     Returns:
-        Returns a dict with the timezone and emails.
+        Returns a list with the timezones.
     """
     result = await get_tz_list(db=db, user_role=user_role)
     return result

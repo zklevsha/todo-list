@@ -117,16 +117,17 @@ uvicorn app:app --reload
 
 #### Users
 
-| Method  | Endpoint                       | Description               | Authentication Required |
-|---------|--------------------------------|---------------------------|-------------------------|
-| `POST`  | `/api/v1/users/register`       | Create User               | No                      |
-| `GET`   | `/api/v1/users/{id_}`          | Get User                  | No                      |
-| `PUT`   | `/api/v1/users/{id_}`          | Update User               | Yes (Owner or Admin)    |
-| `DELETE`| `/api/v1/users/{id_}`          | Delete User               | Yes (Owner or Admin)    |
-| `PATCH` | `/api/v1/users/{id_}`          | Set Role                  | Yes (Admin only)        |
-| `GET`   | `/api/v1/users/`               | Get All Users             | Yes (Admin only)        |
-| `GET`   | `/api/v1/users/reminders`  | Configure daily reminders | Yes (Owner or Admin)    |
-| `GET`   | `/api/v1/users/send_reminders` | Send daily reminders      | Yes (Admin only)        |
+| Method   | Endpoint                       | Description               | Authentication Required |
+|----------|--------------------------------|---------------------------|-------------------------|
+| `POST`   | `/api/v1/users/register`       | Create User               | No                      |
+| `GET`    | `/api/v1/users/{id_}`          | Get User                  | No                      |
+| `PUT`    | `/api/v1/users/{id_}`          | Update User               | Yes (Owner or Admin)    |
+| `DELETE` | `/api/v1/users/{id_}`          | Delete User               | Yes (Owner or Admin)    |
+| `PATCH`  | `/api/v1/users/{id_}`          | Set Role                  | Yes (Admin only)        |
+| `GET`    | `/api/v1/users/`               | Get All Users             | Yes (Admin only)        |
+| `POST`   | `/api/v1/users/reminders`  | Configure daily reminders | Yes (Owner or Admin)    |
+| `POST`   | `/api/v1/users/send_reminders` | Send daily reminders      | Yes (Admin only)        |
+| `GET`    | `/api/v1/users/get_tz_list/` | Get all timezones         | Yes (Admin only)        |
 
 #### Authentication
 
