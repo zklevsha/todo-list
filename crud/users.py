@@ -5,7 +5,6 @@ but focused on user-related DB operations.
 """
 import sqlalchemy as sa
 from fastapi import HTTPException
-from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, func, String, cast
 from models import User, Todo
@@ -232,7 +231,7 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
 
 
 @handle_errors
-async def send_reminders(user_role, db: AsyncSession):
+async def send_reminders(timezone, user_role, db: AsyncSession):
     """
     Function to send the reminders to users with this function
 
@@ -242,15 +241,14 @@ async def send_reminders(user_role, db: AsyncSession):
     if user_role != 'admin':
         raise HTTPException(status_code=403,
                             detail=NOT_AUTHORIZED)
-    users = aliased(User)
-    todos = aliased(Todo)
     tasks_url = app_url + ":8080/api/v1/tasks/"
-    query = sa.select(users.email, func.string_agg(
-        'Title: ' + todos.title + '\nDescription: ' + todos.description +
-        '\nLink: ' + tasks_url + cast(todos.id, String),
+    query = sa.select(User.email, func.string_agg(
+        'Title: ' + Todo.title + '\nDescription: ' + Todo.description +
+        '\nLink: ' + tasks_url + cast(Todo.id, String),
         '\n\n'
-    ).label('tasks')).join(todos, todos.user_id == users.id).where(
-        users.daily_reminder.is_(True), todos.is_finished.is_(False)).group_by(users.email)
+    ).label('tasks')).join(Todo, Todo.user_id == User.id).where(
+        User.daily_reminder.is_(True), Todo.is_finished.is_(False),
+        User.timezone == timezone).group_by(User.email)
     result = await db.execute(query)
     data = result.fetchall()
 
@@ -264,7 +262,29 @@ async def send_reminders(user_role, db: AsyncSession):
             f"Best regards,\n"
             f"The Team"
         )
-
         send_mail(to_address=to_address, subject=subject, text=email_body)
 
     return {'status': 'success', 'message': 'Reminders were sent.'}
+
+
+@handle_errors
+async def get_tz_list(db: AsyncSession, user_role):
+    """
+    Function to get all timezones on the DB
+
+    Returns:
+        A list with the timezones.
+    """
+    if user_role != 'admin':
+        raise HTTPException(status_code=403,
+                            detail=NOT_AUTHORIZED)
+    query = sa.select(User.timezone).where(User.id > 1).group_by(User.timezone)
+    result = await db.execute(query)
+    data = result.fetchall()
+    tz_dict = []
+
+    for row in data:
+        timezone = row.timezone
+        tz_dict.append(timezone)
+
+    return tz_dict

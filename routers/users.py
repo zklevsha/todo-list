@@ -4,8 +4,10 @@ Routes are configured for the users endpoints.
 """
 from fastapi import APIRouter, Depends
 from crud.users import create_new_user, get_existing_user, update_existing_user, \
-    delete_existing_user, get_all_existing_users, set_new_role, set_reminder, send_reminders
-from schemas import UserOutput, UserCreate, UserUpdate, NewRole, DailyReminder
+    delete_existing_user, get_all_existing_users, set_new_role, \
+    set_reminder, send_reminders, get_tz_list
+from schemas import UserOutput, UserCreate, UserUpdate, NewRole, \
+    DailyReminder, TzInput
 from routers.db_functions import get_db, AsyncSession
 from routers.tasks import get_user_id, get_user_role
 
@@ -115,7 +117,7 @@ async def set_daily_reminder(reminder: DailyReminder,
 
 
 @router.post("/send_reminders", status_code=200)
-async def send_daily_reminder(db: AsyncSession = Depends(get_db),
+async def send_daily_reminder(timezone: TzInput, db: AsyncSession = Depends(get_db),
                               user_role: str = Depends(get_user_role)):
     """
     Endpoint to send the daily reminders to all users with this option.
@@ -123,5 +125,20 @@ async def send_daily_reminder(db: AsyncSession = Depends(get_db),
     Returns:
         Returns info about the transaction.
     """
-    result = await send_reminders(user_role=user_role, db=db)
+    tz = timezone.model_dump()['timezone']
+    result = await send_reminders(timezone=tz, user_role=user_role, db=db)
+    return result
+
+
+@router.get("/get_tz_list/", status_code=200)
+async def tz_list(db: AsyncSession = Depends(get_db),
+                  user_role: str = Depends(get_user_role)):
+    """
+    Endpoint to get the email of users with the reminder option enabled
+    grouped by timezone.
+
+    Returns:
+        Returns a dict with the timezone and emails.
+    """
+    result = await get_tz_list(db=db, user_role=user_role)
     return result

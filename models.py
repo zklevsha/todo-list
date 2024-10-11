@@ -31,6 +31,7 @@ class User(Base):  # pylint: disable=R0903
     email: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     password: Mapped[bytes] = mapped_column(LargeBinary(255), nullable=False)
     creation_date: Mapped[int] = mapped_column(Integer, nullable=False)
+    timezone: Mapped[str] = mapped_column(String(30), nullable=False)
     daily_reminder: Mapped[bool] = mapped_column(Boolean, insert_default=False,
                                                  nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole),
