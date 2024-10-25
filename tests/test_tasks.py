@@ -2,6 +2,7 @@
 test_tasks.py
 The module containing all task-related tests for the FastAPI application.
 """
+import re
 from fastapi.testclient import TestClient
 from conftest import app
 from helpers import get_new_token, Headers, ADMIN_TOKEN
@@ -21,7 +22,8 @@ async def get_a_task_id(test_client, todo_data):
     header.auth_token = await get_new_token(test_client,
                                             base_url=USER_API_URL, main_test_user=main_test_user)
     put_response = await test_client.post(f"{BASE_URL}/", json=todo_data, headers=header.headers)
-    task_id = put_response.json()['task_id']
+    match = re.search(r'Task (\d+) added successfully', put_response.json()['message'])
+    task_id = match.group(1)
     return task_id
 
 
@@ -32,25 +34,6 @@ def test_root():
     response = sync_client.get("/api/v1/")
     assert response.status_code == 200
     assert response.json() == {"message": "This is the root endpoint."}
-
-
-def test_test_route():
-    """
-    Testing the 'test route' endpoint of the app.
-    """
-    response = sync_client.get("/api/v1/test")
-    assert response.status_code == 200
-    assert response.json() == {"message": "This is another test route."}
-
-
-async def test_db_test_connection(test_client) -> None:
-    """
-    Testing the testing of db connection for the app.
-    """
-    response = await test_client.get("/api/v1/db-connection")
-    assert response.status_code == 200
-    assert "status" in response.json()
-    assert "message" in response.json()
 
 
 async def test_db_schema_version(test_client) -> None:

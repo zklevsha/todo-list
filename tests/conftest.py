@@ -6,9 +6,10 @@ import asyncio
 import pytest_asyncio
 import sqlalchemy as sa
 from httpx import AsyncClient, ASGITransport
-from db import test_engine, test_async_session
+from db import test_async_session
 from app import app
-from routers.db_functions import get_db, get_engine, AsyncEngine, AsyncSession
+from models import User
+from routers.helpers import get_db, AsyncSession
 
 
 async def override_get_db() -> AsyncSession:
@@ -21,13 +22,6 @@ async def override_get_db() -> AsyncSession:
             yield session
         finally:
             await session.close()
-
-
-async def override_get_engine() -> AsyncEngine:
-    """
-    Returns the test db engine instance.
-    """
-    return test_engine
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -46,7 +40,6 @@ async def test_client():
     A test client that overrides the async session with the test one.
     """
     app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_engine] = override_get_engine
     async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://testserver"
@@ -69,7 +62,7 @@ async def clean_test_db(db: AsyncSession):
     """
     Function to clean the test DB before each test run.
     """
-    query = sa.text("DELETE FROM users WHERE id > 1")
+    query = sa.delete(User).where(User.id > 1)
     await db.execute(query)
     await db.commit()
 

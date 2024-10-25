@@ -21,7 +21,6 @@ class ConnectionResponse(BaseModel):
     """
     Model for a connection response containing status and message.
     """
-    task_id: Optional[int] = None
     status: str
     message: str
 
@@ -29,7 +28,7 @@ class ConnectionResponse(BaseModel):
 class TodoData(BaseModel):
     """
     Model for a todo item containing title, description, 
-    creation date, and completion status.
+    and completion status.
     """
     title: str
     description: str
@@ -43,47 +42,20 @@ class IsFinished(BaseModel):
     is_finished: bool
 
 
-class UserCreate(BaseModel):
+class UserBase(BaseModel):
     """
-    Model for the user creation endpoint.
-    """
-    username: str
-    email: EmailStr
-    password: Union[str, bytes]
-    timezone: Optional[str] = 'UTC'
-
-    @field_validator('password')
-    def hashed_password(cls, value: str) -> bytes:  # pylint: disable=E0213 #"cls" already fulfills that role
-        """
-        Function to return a hashed password. 
-        """
-        return hash_password(value)
-
-    @field_validator('timezone')
-    def validate_timezone(cls, value): # pylint: disable=E0213 #"cls" already fulfills that role
-        """
-        Function to return validate the timezone.
-        """
-        if value not in pytz.all_timezones:
-            raise ValueError(f"Invalid timezone: {value}")
-        return value
-
-    model_config = ConfigDict(use_enum_values=True)
-
-
-class UserUpdate(BaseModel):
-    """
-    Model for the modification of an existing user.
+    Shared base model for user creation and updates.
     """
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    timezone: Optional[str] = None
+    password: Optional[Union[str, bytes]] = None
+    timezone: Optional[str] = 'UTC'
 
-    @field_validator('password')
-    def hashed_password(cls, value: Optional[str]) -> Optional[bytes]:  # pylint: disable=E0213
+    @field_validator('password', mode='before')
+    def hashed_password(cls, value: Optional[str]) \
+            -> Optional[bytes]: # pylint: disable=E0213 #"cls" already fulfills that role
         """
-        Function to return a hashed password, if one was supplied. 
+        Hash the password if provided.
         """
         if value is not None:
             return hash_password(value)
@@ -92,16 +64,33 @@ class UserUpdate(BaseModel):
     @field_validator('timezone')
     def validate_timezone(cls, value): # pylint: disable=E0213 #"cls" already fulfills that role
         """
-        Function to return validate the timezone.
+        Validate the timezone.
         """
         if value not in pytz.all_timezones:
             raise ValueError(f"Invalid timezone: {value}")
         return value
 
+    model_config = ConfigDict(use_enum_values=True)
+
+
+class UserCreate(UserBase):
+    """
+    Model for the user creation endpoint.
+    """
+    username: str
+    email: EmailStr
+    password: Union[str, bytes]
+
+
+class UserUpdate(UserBase):
+    """
+    Model for modifying an existing user.
+    """
+
 
 class UserRead(BaseModel):
     """
-    Model for the output when requesting user info.
+    Base model for user info.
     """
     id: int
     username: str
@@ -113,7 +102,7 @@ class UserRead(BaseModel):
 
 class UserOutput(BaseModel):
     """
-    Model for the output when requesting user info with a message.
+    Model for user info with a message.
     """
     message: str
     user: UserRead

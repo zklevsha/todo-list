@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from crud.tasks import create_todo_task, update_todo_task, get_all_todo_tasks, \
     get_todo_task_by_id, delete_todo_task, mark_todo_task_completed
 from schemas import ConnectionResponse, TodoData, IsFinished
-from routers.db_functions import get_db, AsyncSession
+from routers.helpers import get_db, AsyncSession
 from oauth import get_current_user
 
 router = APIRouter()
@@ -86,8 +86,7 @@ async def update_todo(task_id: int, todo: TodoData,
     Endpoint to update an existing todo task.
     
     Returns:
-        ConnectionResponse: Indicates the success or failure \
-            of the transaction (id, status and message).
+        ConnectionResponse
     """
     todo_dump = todo.model_dump()
     result = await update_todo_task(task_id=task_id, user_id=user_id,
@@ -103,8 +102,7 @@ async def delete_todo(task_id: int,
     Endpoint to remove an existing todo task.
     
     Returns:
-        ConnectionResponse: Indicates the success or failure \
-            of the transaction (id, status and message).
+        ConnectionResponse
     """
     result = await delete_todo_task(task_id=task_id, user_id=user_id, user_role=user_role, db=db)
     return result
@@ -118,8 +116,7 @@ async def mark_completed(task_id: int, finished: IsFinished,
     Endpoint to mark an existing todo task as completed, or not.
     
     Returns:
-        ConnectionResponse: Indicates the success or failure \
-            of the transaction (id, status and message).
+        ConnectionResponse
     """
     is_finished = finished.model_dump()['is_finished']
     result = await mark_todo_task_completed(task_id=task_id, user_id=user_id,
