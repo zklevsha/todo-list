@@ -5,10 +5,10 @@ Routes are configured for the users endpoints.
 from fastapi import APIRouter, Depends
 from crud.users import create_new_user, get_existing_user, update_existing_user, \
     delete_existing_user, get_all_existing_users, set_new_role, \
-    set_reminder, send_reminders, get_tz_list
+    set_reminder, send_reminders
 from schemas import UserOutput, UserCreate, UserUpdate, NewRole, \
-    DailyReminder, TzInput
-from routers.db_functions import get_db, AsyncSession
+    DailyReminder, TzInput, ConnectionResponse
+from routers.helpers import get_db, AsyncSession
 from routers.tasks import get_user_id, get_user_role
 
 router = APIRouter()
@@ -62,7 +62,7 @@ async def update_user(id_: int, user_data: UserUpdate, db: AsyncSession = Depend
     }
 
 
-@router.delete("/{id_}")
+@router.delete("/{id_}", response_model=ConnectionResponse)
 async def delete_user(id_: int, db: AsyncSession = Depends(get_db),
                       user_id: int = Depends(get_user_id), user_role: str = Depends(get_user_role)):
     """
@@ -75,7 +75,7 @@ async def delete_user(id_: int, db: AsyncSession = Depends(get_db),
     return deleted_user
 
 
-@router.patch("/{id_}")
+@router.patch("/{id_}", response_model=ConnectionResponse)
 async def set_role(id_: int, new_role: NewRole, db: AsyncSession = Depends(get_db),
                    user_role: str = Depends(get_user_role)):
     """
@@ -90,18 +90,18 @@ async def set_role(id_: int, new_role: NewRole, db: AsyncSession = Depends(get_d
 
 @router.get("/")
 async def get_all_users(db: AsyncSession = Depends(get_db),
-                        user_role: str = Depends(get_user_role)):
+                        user_role: str = Depends(get_user_role)) -> list:
     """
     Endpoint to get all existing users.
     
     Returns:
-       Returns all users from the Users table.
+       Returns a list of all users from the Users table.
     """
     users = await get_all_existing_users(user_role=user_role, db=db)
     return users
 
 
-@router.post("/reminders", status_code=200)
+@router.post("/reminders", status_code=200, response_model=ConnectionResponse)
 async def set_daily_reminder(reminder: DailyReminder,
                              db: AsyncSession = Depends(get_db),
                              user_id: int = Depends(get_user_id)):
@@ -116,28 +116,15 @@ async def set_daily_reminder(reminder: DailyReminder,
     return result
 
 
-@router.post("/send_reminders", status_code=200)
+@router.post("/send_reminders", status_code=200, response_model=ConnectionResponse)
 async def send_daily_reminder(timezone: TzInput, db: AsyncSession = Depends(get_db),
                               user_role: str = Depends(get_user_role)):
     """
-    Endpoint to send the daily reminders to all users with this option.
+    Endpoint to send the daily reminders to all users with this option enabled.
 
     Returns:
         Returns info about the transaction.
     """
     tz = timezone.model_dump()['timezone']
     result = await send_reminders(timezone=tz, user_role=user_role, db=db)
-    return result
-
-
-@router.get("/get_tz_list/", status_code=200)
-async def tz_list(db: AsyncSession = Depends(get_db),
-                  user_role: str = Depends(get_user_role)):
-    """
-    Endpoint to get all timezones
-
-    Returns:
-        Returns a list with the timezones.
-    """
-    result = await get_tz_list(db=db, user_role=user_role)
     return result

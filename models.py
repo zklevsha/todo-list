@@ -1,6 +1,6 @@
 """
 models.py
-This module contains the model for the "todos" database.
+The models for the "todos" and "users" tables.
 """
 import enum
 from sqlalchemy import Integer, String, Enum, LargeBinary, ForeignKey, Boolean

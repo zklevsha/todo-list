@@ -1,7 +1,7 @@
 """
 users.py
-This module handles all the functions called by the app.py module, 
-but focused on user-related DB operations.
+Module to handle all CRUD operations related
+to the users endpoints.
 """
 import sqlalchemy as sa
 from fastapi import HTTPException
@@ -265,26 +265,3 @@ async def send_reminders(timezone, user_role, db: AsyncSession):
         send_mail(to_address=to_address, subject=subject, text=email_body)
 
     return {'status': 'success', 'message': 'Reminders were sent.'}
-
-
-@handle_errors
-async def get_tz_list(db: AsyncSession, user_role):
-    """
-    Function to get all timezones on the DB
-
-    Returns:
-        A list with the timezones.
-    """
-    if user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NOT_AUTHORIZED)
-    query = sa.select(User.timezone).where(User.id > 1).group_by(User.timezone)
-    result = await db.execute(query)
-    data = result.fetchall()
-    tz_dict = []
-
-    for row in data:
-        timezone = row.timezone
-        tz_dict.append(timezone)
-
-    return tz_dict

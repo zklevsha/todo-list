@@ -6,10 +6,11 @@ import asyncio
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time_machine
+from conftest import test_async_session as t_session
 from helpers import generate_creds, login, get_new_token, \
-    ADMIN_TOKEN, get_new_user_id, TaskState, Headers
+    ADMIN_TOKEN, generate_new_user, TaskState, Headers
 from schemas import UserOutput
-from scheduler.scheduler import job_config_tz
+from scheduler.scheduler import scheduler_main
 
 BASE_URL = "/api/v1/users"
 main_test_user = {}
@@ -162,24 +163,6 @@ async def test_send_reminders(test_client) -> None:
     assert isinstance(response.json(), dict)
 
 
-async def test_get_tz_list(test_client) -> None:
-    """
-    Testing the endpoint to get the email of users with the reminder option enabled.
-    """
-    header.auth_token = await get_new_token(test_client,
-                                            base_url=BASE_URL, main_test_user=main_test_user)
-    response = await test_client.get(f"{BASE_URL}/get_tz_list/", headers=header.headers)
-    assert response.status_code == 403
-
-    no_auth_user = await test_client.get(f"{BASE_URL}/get_tz_list/")
-    assert no_auth_user.status_code == 401
-
-    header.auth_token = ADMIN_TOKEN
-    response = await test_client.get(f"{BASE_URL}/get_tz_list/", headers=header.headers)
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-
-
 async def test_delete_user(test_client) -> None:
     """
     Testing deleting a user.
@@ -202,7 +185,7 @@ async def test_delete_user(test_client) -> None:
     assert response.status_code == 400
 
     # Testing deletion by an admin
-    user = await get_new_user_id(test_client, base_url=BASE_URL)
+    user = await generate_new_user(test_client, base_url=BASE_URL)
     user_id = user.user.id
     header.auth_token = ADMIN_TOKEN
     response = await test_client.delete(f"{BASE_URL}/{user_id}", headers=header.headers)
@@ -215,8 +198,7 @@ async def support_scheduler(tz, test_client) -> None:
     Function that substitutes 'send_reminders_to_users'
     to test the scheduler functionality.
     """
-    print(tz)
-    json_data = {"timezone": 'UTC'}
+    json_data = {"timezone": tz}
     header.auth_token = ADMIN_TOKEN
     response = await test_client.post(f"{BASE_URL}/send_reminders",
                                       json=json_data, headers=header.headers)
@@ -230,8 +212,8 @@ async def test_scheduler_main(test_client) -> None:
     Function to test the scheduler. Here, the time is modified
     with time_machine to trigger execution. A flag 'task_executed'
     is used to track the status of the task to be able to assert it.
-    A brief timeout (1 s) is given before checking.
+    A brief timeout (2 s) is given before checking.
     """
-    await job_config_tz(support_scheduler, test_client, [TZ])
+    await scheduler_main(support_scheduler, test_client, t_session)
     await asyncio.sleep(2)
     assert task_state.task_executed, "Scheduler did not execute the task"

@@ -6,12 +6,15 @@ from schemas import UserOutput
 from crypto import generate_random_string
 from oauth import create_access_token
 
+ADMIN_TOKEN = create_access_token(data={"user_id": 1, "user_role": "admin"})
+USERNAME_LENGTH = 6
+
 
 def generate_username():
     """
-    Function to create a random 6-letter username.
+    Function to create a random username.
     """
-    return generate_random_string(6)
+    return generate_random_string(USERNAME_LENGTH)
 
 
 def generate_creds():
@@ -23,7 +26,7 @@ def generate_creds():
     return user, email
 
 
-async def get_new_user_id(test_client, base_url) -> UserOutput:
+async def generate_new_user(test_client, base_url) -> UserOutput:
     """
     Function to generate a new user for the tests.
     """
@@ -36,26 +39,23 @@ async def get_new_user_id(test_client, base_url) -> UserOutput:
 
 async def login(test_client, base_url, main_test_user) -> UserOutput:
     """
-    Function to log in as the previously created user.
+    Function to log in using the 'login' endpoint.
     """
     if not main_test_user:
-        new_user = await get_new_user_id(test_client=test_client, base_url=base_url)
+        new_user = await generate_new_user(test_client=test_client, base_url=base_url)
         main_test_user.update(new_user.model_dump())
     return UserOutput(**main_test_user)
 
 
 async def get_new_token(test_client, base_url, main_test_user) -> None:
     """
-    Function to generate a token imitating the login function.
+    Function to generate a token using the login function.
     """
     new_user = await login(test_client=test_client,
                            base_url=base_url, main_test_user=main_test_user)
     access_token = create_access_token(data={"user_id": new_user.user.id,
                                              "user_role": new_user.user.role})
     return access_token
-
-
-ADMIN_TOKEN = create_access_token(data={"user_id": 1, "user_role": "admin"})
 
 
 class TaskState:  # pylint: disable=R0903

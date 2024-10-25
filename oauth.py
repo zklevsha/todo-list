@@ -19,8 +19,8 @@ def create_access_token(data: dict):
     Function to create a new access token.
     """
     to_encode = data.copy()
-    expiration = datetime.now(timezone.utc) + \
-                 timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expiration = \
+        datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expiration})
 
     encoded_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -33,12 +33,12 @@ def verify_access_token(access_token, credentials_exception):
     """
     try:
         payload = jwt.decode(key=SECRET_KEY, token=access_token, algorithms=[ALGORITHM])
-        uid: int = payload.get("user_id")
+        user_id: int = payload.get("user_id")
         role: UserRole = payload.get("user_role")
 
-        if uid is None:
+        if user_id is None:
             raise credentials_exception
-        token_data = TokenData(id=uid, role=role)
+        token_data = TokenData(id=user_id, role=role)
 
     except JWTError as e:
         raise credentials_exception from e

@@ -100,8 +100,6 @@ uvicorn app:app --reload
 | Method | Endpoint              | Description           | Authentication Required |
 |--------|-----------------------|-----------------------|-------------------------|
 | `GET`  | `/api/v1/`            | Root Test             | No                      |
-| `GET`  | `/api/v1/test`        | Test Route            | No                      |
-| `GET`  | `/api/v1/db-connection` | Testing Connection  | No                      |
 | `GET`  | `/api/v1/schema`      | Get Schema Version    | No                      |
 
 #### Tasks
@@ -127,7 +125,6 @@ uvicorn app:app --reload
 | `GET`    | `/api/v1/users/`               | Get All Users             | Yes (Admin only)        |
 | `POST`   | `/api/v1/users/reminders`  | Configure daily reminders | Yes (Owner or Admin)    |
 | `POST`   | `/api/v1/users/send_reminders` | Send daily reminders      | Yes (Admin only)        |
-| `GET`    | `/api/v1/users/get_tz_list/` | Get all timezones         | Yes (Admin only)        |
 
 #### Authentication
 

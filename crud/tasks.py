@@ -1,28 +1,16 @@
 """
 crud.py
-This module handles all the functions called by the app.py module, 
-as well as managing the functionality of the DB operations.
+Module to handle all CRUD operations related
+to the tasks endpoints.
 """
 import sqlalchemy as sa
 from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from models import Todo
 from crud.helpers import handle_errors, get_creation_date
 
 NO_ACCESS = 'You do not have permission to access this task.'
-
-
-@handle_errors
-async def connect_test(engine: AsyncEngine, db):  # pylint: disable=W0613 # Required for the handle_errors function
-    """
-    Test the connection to the DB.
-    
-    Returns:
-        Connection status.
-    """
-    async with engine.connect():
-        return {'status': 'success', 'message': 'Successfully connected to the server.'}
 
 
 @handle_errors
@@ -57,8 +45,8 @@ async def create_todo_task(todo: dict, user_id, db: AsyncSession):
     result = await db.execute(query)
     task_id = result.scalar()
     await db.commit()
-    return {'task_id': task_id, 'status': 'success',
-            'message': 'Task added successfully.'}
+    return {'status': 'success',
+            'message': f'Task {task_id} added successfully.'}
 
 
 @handle_errors

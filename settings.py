@@ -33,5 +33,3 @@ SECRET_KEY = config.get('secret_key')
 
 mail_from_address = config.get('mail_from_address')
 mail_token = config.get('mail_token')
-
-TZ = config.get('TZ')

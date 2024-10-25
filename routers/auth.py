@@ -1,12 +1,12 @@
 """
 auth.py
-Routes are configured for the authentication endpoints.
+Routes are configured for the authentication endpoint.
 """
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from crud.users import user_login
 from schemas import Token
-from routers.db_functions import get_db, AsyncSession
+from routers.helpers import get_db, AsyncSession
 
 router = APIRouter()
 

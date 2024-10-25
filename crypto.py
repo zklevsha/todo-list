@@ -1,7 +1,6 @@
 """
 settings.py
-Module with support functions for
-crypt operations
+Module with support functions for crypt operations
 """
 import random
 import string
