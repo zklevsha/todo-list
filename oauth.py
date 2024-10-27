@@ -7,7 +7,7 @@ from jose import jwt, JWTError
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from settings import SECRET_KEY
-from schemas import TokenData, UserRole
+from schemas import AccessTokenData, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/login')
 ALGORITHM = "HS256"
@@ -18,12 +18,12 @@ def create_access_token(data: dict):
     """
     Function to create a new access token.
     """
-    to_encode = data.copy()
+    token_data_to_encode = data.copy()
     expiration = \
         datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expiration})
+    token_data_to_encode.update({"exp": expiration})
 
-    encoded_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_token = jwt.encode(token_data_to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_token
 
 
@@ -38,10 +38,10 @@ def verify_access_token(access_token, credentials_exception):
 
         if user_id is None:
             raise credentials_exception
-        token_data = TokenData(id=user_id, role=role)
+        token_data = AccessTokenData(id=user_id, role=role)
 
-    except JWTError as e:
-        raise credentials_exception from e
+    except JWTError as error:
+        raise credentials_exception from error
 
     return token_data.id, token_data.role
 

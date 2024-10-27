@@ -3,13 +3,14 @@ test_users.py
 The module containing all user-related tests for the FastAPI application.
 """
 import asyncio
+import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time_machine
-from conftest import test_async_session as t_session
+from conftest import test_async_session as dbtest_session
 from helpers import generate_creds, login, get_new_token, \
     ADMIN_TOKEN, generate_new_user, TaskState, Headers
-from schemas import UserOutput
+from schemas import UserDataOutput
 from scheduler.scheduler import scheduler_main
 
 BASE_URL = "/api/v1/users"
@@ -33,7 +34,7 @@ async def test_register_user_admin(test_client) -> None:
     assert parsed_response['user']['role'] == "user"
 
 
-async def test_get_user_by_id(test_client) -> None:
+async def test_get_existing_user(test_client) -> None:
     """
     Testing getting a user by ID.
     """
@@ -42,9 +43,9 @@ async def test_get_user_by_id(test_client) -> None:
     header.auth_token = await get_new_token(test_client,
                                             base_url=BASE_URL, main_test_user=main_test_user)
     response = await test_client.get(f"{BASE_URL}/{user_id}", headers=header.headers)
-    returned_user: UserOutput = UserOutput.model_validate(response.json())
+    returned_user: UserDataOutput = UserDataOutput.model_validate(response.json())
     assert response.status_code == 200
-    assert isinstance(returned_user, UserOutput)
+    assert isinstance(returned_user, UserDataOutput)
     no_user = await test_client.get(f"{BASE_URL}/131313", headers=header.headers)
     assert no_user.status_code == 404
 
@@ -60,9 +61,9 @@ async def test_update_user(test_client) -> None:
     header.auth_token = await get_new_token(test_client,
                                             base_url=BASE_URL, main_test_user=main_test_user)
     response = await test_client.put(f"{BASE_URL}/{user_id}", json=new_data, headers=header.headers)
-    returned_user: UserOutput = UserOutput.model_validate(response.json())
+    returned_user: UserDataOutput = UserDataOutput.model_validate(response.json())
     assert response.status_code == 200
-    assert isinstance(returned_user, UserOutput)
+    assert isinstance(returned_user, UserDataOutput)
 
     no_auth_user = await test_client.put(f"{BASE_URL}/{user_id}", json=new_data)
     assert no_auth_user.status_code == 401
@@ -72,7 +73,7 @@ async def test_update_user(test_client) -> None:
     assert response.status_code == 409
 
 
-async def test_change_user_role(test_client) -> None:
+async def test_set_role(test_client) -> None:
     """
     Testing changing the role of a user.
     """
@@ -83,7 +84,7 @@ async def test_change_user_role(test_client) -> None:
                                             base_url=BASE_URL, main_test_user=main_test_user)
     response = await test_client.patch(f"{BASE_URL}/{user_id}",
                                        json=role_data, headers=header.headers)
-    assert response.status_code == 403
+    assert response.status_code == 401
 
     no_auth_user = await test_client.patch(f"{BASE_URL}/{user_id}", json=role_data)
     assert no_auth_user.status_code == 401
@@ -91,7 +92,7 @@ async def test_change_user_role(test_client) -> None:
     # Testing non-existent
     response = await test_client.patch(f"{BASE_URL}/131313",
                                        json=role_data, headers=header.headers)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     # Testing with the admin user.
     header.auth_token = ADMIN_TOKEN
@@ -109,7 +110,7 @@ async def test_get_all_users(test_client) -> None:
     header.auth_token = await get_new_token(test_client,
                                             base_url=BASE_URL, main_test_user=main_test_user)
     response = await test_client.get(f"{BASE_URL}/", headers=header.headers)
-    assert response.status_code == 403
+    assert response.status_code == 401
 
     no_auth_user = await test_client.get(f"{BASE_URL}/")
     assert no_auth_user.status_code == 401
@@ -120,7 +121,7 @@ async def test_get_all_users(test_client) -> None:
     assert response.status_code == 200
 
 
-async def test_set_reminders(test_client) -> None:
+async def test_set_daily_reminder(test_client) -> None:
     """
     Testing the endpoint to set the daily reminders.
     """
@@ -135,7 +136,7 @@ async def test_set_reminders(test_client) -> None:
     # Testing when the reminders are already enabled
     response = await test_client.post(f"{BASE_URL}/reminders",
                                       json=json_data, headers=header.headers)
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert isinstance(response.json(), dict)
 
     no_auth_user = await test_client.post(f"{BASE_URL}/reminders", json=json_data)
@@ -151,7 +152,7 @@ async def test_send_reminders(test_client) -> None:
                                             base_url=BASE_URL, main_test_user=main_test_user)
     response = await test_client.post(f"{BASE_URL}/send_reminders",
                                       json=json_data, headers=header.headers)
-    assert response.status_code == 403
+    assert response.status_code == 401
 
     no_auth_user = await test_client.post(f"{BASE_URL}/reminders", json=json_data)
     assert no_auth_user.status_code == 401
@@ -182,7 +183,7 @@ async def test_delete_user(test_client) -> None:
 
     # Testing non-existent
     response = await test_client.delete(f"{BASE_URL}/131313", headers=header.headers)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     # Testing deletion by an admin
     user = await generate_new_user(test_client, base_url=BASE_URL)
@@ -193,17 +194,17 @@ async def test_delete_user(test_client) -> None:
     assert isinstance(response.json(), dict)
 
 
-async def support_scheduler(tz, test_client) -> None:
+async def support_scheduler(test_client, timezone) -> None:
     """
     Function that substitutes 'send_reminders_to_users'
     to test the scheduler functionality.
     """
-    json_data = {"timezone": tz}
+    json_data = {"timezone": timezone}
     header.auth_token = ADMIN_TOKEN
     response = await test_client.post(f"{BASE_URL}/send_reminders",
                                       json=json_data, headers=header.headers)
     task_state.task_executed = True
-    print(f"Reminders sent, status code: {response.status_code}")
+    logging.info("Reminders sent, status code: %s", response.status_code)
 
 
 @time_machine.travel(datetime(2024, 9, 21, 8, 59, 59, tzinfo=TZ))
@@ -214,6 +215,13 @@ async def test_scheduler_main(test_client) -> None:
     is used to track the status of the task to be able to assert it.
     A brief timeout (2 s) is given before checking.
     """
-    await scheduler_main(support_scheduler, test_client, t_session)
+    async def support_scheduler_wrapper(timezone):
+        """
+        A wrapper to include the test_client as parameter for
+        the support_scheduler function
+        """
+        return await support_scheduler(test_client, timezone)
+
+    await scheduler_main(support_scheduler_wrapper, dbtest_session)
     await asyncio.sleep(2)
     assert task_state.task_executed, "Scheduler did not execute the task"

@@ -4,21 +4,21 @@ Routes are configured for the root and db_schema endpoints.
 """
 from fastapi import APIRouter, Depends
 from crud.tasks import get_schema
-from schemas import BasicResponse
+from schemas import ConnectionResponse
 from routers.helpers import get_db, AsyncSession
 
 router = APIRouter()
 
 
-@router.get("/")
-async def root_test() -> BasicResponse:
+@router.get("/", status_code=200)
+async def root_test() -> ConnectionResponse:
     """
     Root endpoint for testing the API.
     
     Returns:
-        BasicResponse: Simple test message.
+        ConnectionResponse: The result of the operation
     """
-    return BasicResponse(message="This is the root endpoint.")
+    return ConnectionResponse(status="Success", message="This is the root endpoint.")
 
 
 @router.get("/schema", status_code=200)

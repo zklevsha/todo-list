@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from models import User
 
 
-async def get_tz_list(db_session):
+async def get_timezones_list(db_session):
     """
     Function to get all timezones on the DB
 
@@ -22,9 +22,9 @@ async def get_tz_list(db_session):
             result = await db.execute(query)
             data = result.fetchall()
 
-            tz_list = [row.timezone for row in data]
+            timezones_list = [row.timezone for row in data]
 
-        return tz_list
+        return timezones_list
 
     except SQLAlchemyError as error:
         logging.error("SQLAlchemyError occurred: %s", error)

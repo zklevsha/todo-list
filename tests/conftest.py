@@ -43,8 +43,8 @@ async def test_client():
     async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://testserver"
-    ) as test_clients:
-        yield test_clients
+    ) as _test_client:
+        yield _test_client
 
 
 @pytest_asyncio.fixture(name="db", scope="session")

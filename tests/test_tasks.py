@@ -33,7 +33,7 @@ def test_root():
     """
     response = sync_client.get("/api/v1/")
     assert response.status_code == 200
-    assert response.json() == {"message": "This is the root endpoint."}
+    assert response.json() == {'message': 'This is the root endpoint.', 'status': 'Success'}
 
 
 async def test_db_schema_version(test_client) -> None:
@@ -45,7 +45,7 @@ async def test_db_schema_version(test_client) -> None:
     assert isinstance(response.json(), str)
 
 
-async def test_get_all_tasks(test_client) -> None:
+async def test_get_all_todos(test_client) -> None:
     """
     Testing getting all tasks.
     """
@@ -80,12 +80,12 @@ async def test_get_task_by_id(test_client) -> None:
     # Testing getting a non-existent task by ID.
     response_missing = await test_client.get(f"{BASE_URL}/131313", headers=header.headers)
     no_auth_response_missing = await test_client.get(f"{BASE_URL}/131313")
-    assert response_missing.status_code == 400
-    assert response_missing.json() == {"detail": "Task with ID 131313 does not exist."}
+    assert response_missing.status_code == 404
+    assert response_missing.json() == {"detail": "Task with ID 131313 not found."}
     assert no_auth_response_missing.status_code == 401
 
 
-async def test_add_task(test_client) -> None:
+async def test_add_todo(test_client) -> None:
     """
     Testing adding a new task to the DB.
     """
@@ -117,7 +117,7 @@ async def test_add_task(test_client) -> None:
     assert bad_no_auth_response.status_code == 401
 
 
-async def test_update_task(test_client) -> None:
+async def test_update_todo(test_client) -> None:
     """
     Testing updating a task.
     """
@@ -157,9 +157,9 @@ async def test_update_task(test_client) -> None:
                                             main_test_user=secondary_test_user)
     response = await test_client.put(f"{BASE_URL}/{task_id}",
                                      json=updated_todo_data, headers=header.headers)
-    assert response.status_code == 403
+    assert response.status_code == 401
     assert "detail" in response.json()
-    expected_error = 'You do not have permission to access this task.'
+    expected_error = 'You are not authorized to perform this action.'
     assert response.json()["detail"] == expected_error
 
     # Testing with the admin user.
@@ -171,7 +171,7 @@ async def test_update_task(test_client) -> None:
     assert "message" in response.json()
 
 
-async def test_delete_task(test_client) -> None:
+async def test_delete_todo(test_client) -> None:
     """
     Testing deleting a task.
     """
@@ -187,9 +187,8 @@ async def test_delete_task(test_client) -> None:
     # Testing deleting a non-existent entry.
     missing_response = await test_client.delete(f"{BASE_URL}/131313", headers=header.headers)
     missing_no_auth_response = await test_client.delete(f"{BASE_URL}/131313")
-    assert missing_response.status_code == 400
-    assert missing_response.json() == {"detail":
-                                           "Task with ID 131313 does not exist. Can\'t delete"}
+    assert missing_response.status_code == 404
+    assert missing_response.json() == {"detail": "Task with ID 131313 not found."}
     assert missing_no_auth_response.status_code == 401
 
     # Testing the transaction with another user.
@@ -198,24 +197,18 @@ async def test_delete_task(test_client) -> None:
                                             base_url=USER_API_URL,
                                             main_test_user=secondary_test_user)
     response = await test_client.delete(f"{BASE_URL}/{task_id}", headers=header.headers)
-    assert response.status_code == 403
+    assert response.status_code == 401
     assert "detail" in response.json()
-    expected_error = 'You do not have permission to access this task.'
+    expected_error = 'You are not authorized to perform this action.'
     assert response.json()["detail"] == expected_error
 
-    # Testing with the admin user.
-    header.auth_token = ADMIN_TOKEN
-    response = await test_client.delete(f"{BASE_URL}/{task_id}", headers=header.headers)
-    assert response.status_code == 200
-    assert "message" in response.json()
 
-
-async def test_finish(test_client) -> None:
+async def test_toggle_task_completion(test_client) -> None:
     """
     Testing the 'finish' endpoint.
     """
     todo_data = {"title": "Testing_is_finished",
-                 "description": "Description_mark_completed", "is_finished": False}
+                 "description": "Description_mark_completed", "is_finished": "false"}
     task_id = await get_a_task_id(test_client, todo_data)
     is_finished_data = {"is_finished": "true"}
     response = await test_client.put(f"{BASE_URL}/{task_id}/finish",
@@ -231,6 +224,6 @@ async def test_finish(test_client) -> None:
                                              json=is_finished_data, headers=header.headers)
     missing_no_auth_response = await test_client.put(f"{BASE_URL}/131313/finish",
                                                      json=is_finished_data)
-    assert missing_response.status_code == 400
-    assert missing_response.json() == {"detail": "Task with ID 131313 does not exist."}
+    assert missing_response.status_code == 404
+    assert missing_response.json() == {"detail": "Task with ID 131313 not found."}
     assert missing_no_auth_response.status_code == 401

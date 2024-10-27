@@ -59,7 +59,6 @@ admin_email=ADMIN_USER_EMAIL (Optional)
 admin_password=ADMIN_USER_PASSWORD (Optional)  
 secret_key = "random string"
 
-TZ=TIMEZONE (Optional) # Default value is UTC
 mail_from_address=FROM_ADDRESS # Sender address from Mailtrap
 mail_token=TOKEN # Mailtrap API Token
 ```
@@ -110,7 +109,7 @@ uvicorn app:app --reload
 | `POST`  | `/api/v1/tasks/`           | Add Todo           | Yes                     |
 | `GET`   | `/api/v1/tasks/{task_id}`  | Get Task by Id     | Yes                     |
 | `PUT`   | `/api/v1/tasks/{task_id}`  | Update Todo        | Yes                     |
-| `DELETE`| `/api/v1/tasks/{task_id}`  | Delete Todo        | Yes (Owner or Admin)    |
+| `DELETE`| `/api/v1/tasks/{task_id}`  | Delete Todo        | Yes    |
 | `PUT`   | `/api/v1/tasks/{task_id}/finish` | Mark Completed | Yes                   |
 
 #### Users
@@ -119,11 +118,11 @@ uvicorn app:app --reload
 |----------|--------------------------------|---------------------------|-------------------------|
 | `POST`   | `/api/v1/users/register`       | Create User               | No                      |
 | `GET`    | `/api/v1/users/{id_}`          | Get User                  | No                      |
-| `PUT`    | `/api/v1/users/{id_}`          | Update User               | Yes (Owner or Admin)    |
-| `DELETE` | `/api/v1/users/{id_}`          | Delete User               | Yes (Owner or Admin)    |
+| `PUT`    | `/api/v1/users/{id_}`          | Update User               | Yes     |
+| `DELETE` | `/api/v1/users/{id_}`          | Delete User               | Yes    |
+| `POST`   | `/api/v1/users/reminders`  | Configure daily reminders | Yes     |
 | `PATCH`  | `/api/v1/users/{id_}`          | Set Role                  | Yes (Admin only)        |
 | `GET`    | `/api/v1/users/`               | Get All Users             | Yes (Admin only)        |
-| `POST`   | `/api/v1/users/reminders`  | Configure daily reminders | Yes (Owner or Admin)    |
 | `POST`   | `/api/v1/users/send_reminders` | Send daily reminders      | Yes (Admin only)        |
 
 #### Authentication

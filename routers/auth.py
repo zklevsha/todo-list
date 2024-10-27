@@ -5,13 +5,13 @@ Routes are configured for the authentication endpoint.
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from crud.users import user_login
-from schemas import Token
+from schemas import AccessToken
 from routers.helpers import get_db, AsyncSession
 
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=AccessToken)
 async def login(user_credentials: OAuth2PasswordRequestForm = Depends(),
                 db: AsyncSession = Depends(get_db)):
     """

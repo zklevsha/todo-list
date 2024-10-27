@@ -4,13 +4,10 @@ Module to handle all CRUD operations related
 to the tasks endpoints.
 """
 import sqlalchemy as sa
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from models import Todo
-from crud.helpers import handle_errors, get_creation_date
-
-NO_ACCESS = 'You do not have permission to access this task.'
+from crud.helpers import handle_errors, get_current_time, raise_helper
 
 
 @handle_errors
@@ -28,14 +25,14 @@ async def get_schema(db: AsyncSession):
 
 
 @handle_errors
-async def create_todo_task(todo: dict, user_id, db: AsyncSession):
+async def crud_add_todo(todo: dict, user_id, db: AsyncSession):
     """
     Function to insert a new task into the "todos" table.
     
     Returns:
         Status code and message of the transaction. 
     """
-    creation_date = get_creation_date()
+    creation_date = get_current_time()
     todo.update({"user_id": user_id})
     todo.update({"creation_date": creation_date})
 
@@ -50,7 +47,7 @@ async def create_todo_task(todo: dict, user_id, db: AsyncSession):
 
 
 @handle_errors
-async def update_todo_task(task_id: int, user_id, user_role, todo: dict, db: AsyncSession):
+async def crud_update_todo(task_id: int, user_id, user_role, todo: dict, db: AsyncSession):
     """
     Function to update an existing task in the "todos" table.
     
@@ -62,12 +59,9 @@ async def update_todo_task(task_id: int, user_id, user_role, todo: dict, db: Asy
     existing_task = result.scalar()
 
     if existing_task is None:
-        raise HTTPException(
-            status_code=400, detail=['Unable modify a resource that does not exist.']
-        )
+        raise_helper(404, "Task", task_id)
     if existing_task.user_id != user_id and user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NO_ACCESS)
+        raise_helper(401)
 
     updated_task = (sa.update(Todo).where(Todo.id == task_id).values(**todo))
     await db.execute(updated_task)
@@ -77,7 +71,7 @@ async def update_todo_task(task_id: int, user_id, user_role, todo: dict, db: Asy
 
 
 @handle_errors
-async def get_all_todo_tasks(user_id, user_role, db: AsyncSession):
+async def crud_get_all_todos(user_id, user_role, db: AsyncSession):
     """
     Function to get all existing task in the "todos" table.
     
@@ -91,7 +85,7 @@ async def get_all_todo_tasks(user_id, user_role, db: AsyncSession):
     result = await db.execute(query)
     todos = result.scalars().all()
     if not todos:
-        raise HTTPException(status_code=200, detail='The Todo list is empty.')
+        raise_helper(200)
     formatted_output = [
         {
             "id": todo.id,
@@ -106,7 +100,7 @@ async def get_all_todo_tasks(user_id, user_role, db: AsyncSession):
 
 
 @handle_errors
-async def delete_todo_task(task_id, user_id, user_role, db: AsyncSession):
+async def crud_delete_todo(task_id, user_id, db: AsyncSession):
     """
     Function to delete an existing task in the "todos" table.
     
@@ -117,11 +111,9 @@ async def delete_todo_task(task_id, user_id, user_role, db: AsyncSession):
     result = await db.execute(query)
     task_to_delete = result.scalar()
     if not task_to_delete:
-        raise HTTPException(status_code=400,
-                            detail=f'Task with ID {task_id} does not exist. Can\'t delete')
-    if task_to_delete.user_id != user_id and user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NO_ACCESS)
+        raise_helper(404, "Task", task_id)
+    if task_to_delete.user_id != user_id:
+        raise_helper(401)
 
     await db.delete(task_to_delete)
     await db.commit()
@@ -129,7 +121,7 @@ async def delete_todo_task(task_id, user_id, user_role, db: AsyncSession):
 
 
 @handle_errors
-async def get_todo_task_by_id(task_id, user_id, user_role, db: AsyncSession):
+async def crud_get_task_by_id(task_id, user_id, user_role, db: AsyncSession):
     """
     Function to get a "todo" matching the provided ID.
     
@@ -140,12 +132,10 @@ async def get_todo_task_by_id(task_id, user_id, user_role, db: AsyncSession):
     result = await db.execute(query)
     todo = result.scalar()
     if todo is None:
-        raise HTTPException(status_code=400,
-                            detail=f'Task with ID {task_id} does not exist.')
+        raise_helper(404, "Task", task_id)
 
     if todo.user_id != user_id and user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NO_ACCESS)
+        raise_helper(401)
 
     formatted_output = [
         {
@@ -160,8 +150,8 @@ async def get_todo_task_by_id(task_id, user_id, user_role, db: AsyncSession):
 
 
 @handle_errors
-async def mark_todo_task_completed(task_id: int, user_id, user_role,
-                                   finished: bool, db: AsyncSession):
+async def crud_toggle_task_completion(task_id: int, user_id, user_role,
+                                      is_finished: bool, db: AsyncSession):
     """
     Function to mark a matching "todo" as completed (or not).
     
@@ -172,20 +162,17 @@ async def mark_todo_task_completed(task_id: int, user_id, user_role,
     result = await db.execute(query)
     todo = result.scalar()
     if todo is None:
-        raise HTTPException(status_code=400,
-                            detail=f'Task with ID {task_id} does not exist.')
-    if todo.is_finished and finished:
-        raise HTTPException(status_code=200,
-                            detail=f'Task {task_id} is already set to completed.')
-    if not todo.is_finished and not finished:
-        raise HTTPException(status_code=200,
-                            detail=f'Task {task_id} is already set to pending.')
+        raise_helper(404, "Task", task_id)
+
+    if todo.is_finished == is_finished:
+        status = "completed" if is_finished else "pending"
+        raise_helper(422, "Task", status)
+
     if todo.user_id != user_id and user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NO_ACCESS)
+        raise_helper(401)
 
     completed_task = (
-        sa.update(Todo).where(Todo.id == task_id).values(is_finished=finished)
+        sa.update(Todo).where(Todo.id == task_id).values(is_finished=is_finished)
     )
     await db.execute(completed_task)
     await db.commit()

@@ -2,7 +2,7 @@
 helpers.py
 A support module containing useful functions.
 """
-from schemas import UserOutput
+from schemas import UserDataOutput
 from crypto import generate_random_string
 from oauth import create_access_token
 
@@ -26,25 +26,25 @@ def generate_creds():
     return user, email
 
 
-async def generate_new_user(test_client, base_url) -> UserOutput:
+async def generate_new_user(test_client, base_url) -> UserDataOutput:
     """
     Function to generate a new user for the tests.
     """
     user, email = generate_creds()
     user_data = {"username": user, "email": email, "password": "test"}
     response = await test_client.post(f"{base_url}/register", json=user_data)
-    parsed_response = UserOutput(**response.json())
+    parsed_response = UserDataOutput(**response.json())
     return parsed_response
 
 
-async def login(test_client, base_url, main_test_user) -> UserOutput:
+async def login(test_client, base_url, main_test_user) -> UserDataOutput:
     """
     Function to log in using the 'login' endpoint.
     """
     if not main_test_user:
         new_user = await generate_new_user(test_client=test_client, base_url=base_url)
         main_test_user.update(new_user.model_dump())
-    return UserOutput(**main_test_user)
+    return UserDataOutput(**main_test_user)
 
 
 async def get_new_token(test_client, base_url, main_test_user) -> None:

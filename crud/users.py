@@ -4,28 +4,25 @@ Module to handle all CRUD operations related
 to the users endpoints.
 """
 import sqlalchemy as sa
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, func, String, cast
 from models import User, Todo
 from schemas import UserUpdate, UserRole
 from crypto import verify_password
 from oauth import create_access_token
-from crud.helpers import handle_errors, get_creation_date, send_mail
+from crud.helpers import handle_errors, get_current_time, send_mail, raise_helper, template
 from settings import app_url
-
-NOT_AUTHORIZED = 'You are not authorized to perform this action.'
 
 
 @handle_errors
-async def create_new_user(user_data: dict, db: AsyncSession):
+async def crud_create_new_user(user_data: dict, db: AsyncSession):
     """
     Function to add a new user into the "users" table.
     
     Returns:
         The new_user info. 
     """
-    creation_date = get_creation_date()
+    creation_date = get_current_time()
     user_data['creation_date'] = creation_date
     user_data['role'] = UserRole.USER
     new_user = User(**user_data)
@@ -36,8 +33,7 @@ async def create_new_user(user_data: dict, db: AsyncSession):
     result = await db.execute(query)
     user_exists = result.scalars().first()
     if user_exists:
-        raise HTTPException(status_code=400,
-                            detail='The username or email is already in use.')
+        raise_helper(409)
 
     db.add(new_user)
     await db.commit()
@@ -56,59 +52,52 @@ async def user_login(user_credentials: dict, db: AsyncSession):
     query = sa.select(User).where(User.username == user_credentials.username)
     result = await db.execute(query)
     user = result.scalar()
-    if user is None:
-        raise HTTPException(status_code=403, detail='Invalid credentials.')
-
-    if not verify_password(user_credentials.password, user.password):
-        raise HTTPException(status_code=403, detail='Invalid credentials.')
+    if user is None or not verify_password(user_credentials.password, user.password):
+        raise_helper(403)
 
     access_token = create_access_token(data={"user_id": user.id, "user_role": user.role})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @handle_errors
-async def get_existing_user(uid: int, db: AsyncSession):
+async def crud_get_existing_user(user_id: int, db: AsyncSession):
     """
     Function to get an existing user by ID.
     
     Returns:
         The user info (if it exists). 
     """
-    query = sa.select(User).where(User.id == uid)
+    query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
     existing_user = result.scalar()
     if existing_user is None:
-        raise HTTPException(status_code=404,
-                            detail=f'User with ID {uid} not found.')
+        raise_helper(404, "User", user_id)
 
     return existing_user
 
 
 @handle_errors
-async def update_existing_user(uid: int, user_id, user_role,
-                               user_data: UserUpdate, db: AsyncSession):
+async def crud_update_user(user_id: int, requester_id, requester_role,
+                           user_data: UserUpdate, db: AsyncSession):
     """
     Function to update an existing user by ID.
     
     Returns:
         The updated user info (if successful). 
     """
-    query = sa.select(User).where(User.id == uid)
+    query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
     modified_user = result.scalar()
     if modified_user is None:
-        raise HTTPException(status_code=404,
-                            detail=f'User with ID {uid} not found.')
-    if modified_user.id != user_id and user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NOT_AUTHORIZED)
+        raise_helper(404, "User", user_id)
+    if modified_user.id != requester_id and requester_role != 'admin':
+        raise_helper(401)
 
     query_all = await db.execute(sa.select(User))
     existing = query_all.scalars().all()
     if any(user_data.username == user.username or
            user_data.email == user.email for user in existing):
-        raise HTTPException(status_code=409,
-                            detail='Username or email already in use.')
+        raise_helper(409)
 
     if user_data.username is not None:
         modified_user.username = user_data.username
@@ -123,30 +112,28 @@ async def update_existing_user(uid: int, user_id, user_role,
 
 
 @handle_errors
-async def delete_existing_user(uid, user_id, user_role, db: AsyncSession):
+async def crud_delete_user(user_id, requester_id, requester_role, db: AsyncSession):
     """
     Function to delete an existing user.
     
     Returns:
         Status code and message of the transaction.
     """
-    query = sa.select(User).where(User.id == uid)
+    query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
     user_to_delete = result.scalar()
     if not user_to_delete:
-        raise HTTPException(status_code=400,
-                            detail=f'User {uid} does not exist.')
-    if user_to_delete.id != user_id and user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NOT_AUTHORIZED)
+        raise_helper(404, "User", user_id)
+    if user_to_delete.id != requester_id and requester_role != 'admin':
+        raise_helper(401)
 
     await db.delete(user_to_delete)
     await db.commit()
-    return {'status': 'success', 'message': f'User {uid} deleted successfully.'}
+    return {'status': 'success', 'message': f'User {user_id} deleted successfully.'}
 
 
 @handle_errors
-async def get_all_existing_users(user_role, db: AsyncSession):
+async def crud_get_all_users(user_role, db: AsyncSession):
     """
     Function to get all existing users (only for admin users).
     
@@ -154,11 +141,12 @@ async def get_all_existing_users(user_role, db: AsyncSession):
         A list of all users. If error, 
         returns status code and error message of the transaction.
     """
+    query = ""  # For pylint E0606: Possibly using variable 'query' before assignment
     if user_role == "admin":
         query = sa.select(User)
     else:
-        raise HTTPException(status_code=403,
-                            detail=NOT_AUTHORIZED)
+        raise_helper(401)
+
     result = await db.execute(query)
     users = result.scalars().all()
     formatted_output = [
@@ -175,37 +163,34 @@ async def get_all_existing_users(user_role, db: AsyncSession):
 
 
 @handle_errors
-async def set_new_role(uid, new_role, user_role, db: AsyncSession):
+async def crud_set_role(user_id, new_role, requester_role, db: AsyncSession):
     """
     Function to change the role of an existing user (only for admin users).
     
     Returns:
         Status and message of the transaction.
     """
-    query = sa.select(User).where(User.id == uid)
+    query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
     user = result.scalar()
     if user is None:
-        raise HTTPException(status_code=400,
-                            detail=f'User with ID {uid} does not exist.')
-    if user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NOT_AUTHORIZED)
+        raise_helper(404, "User", user_id)
+    if requester_role != 'admin':
+        raise_helper(401)
     if user.role == new_role.role:
-        raise HTTPException(status_code=200,
-                            detail=f'User already had role {new_role.role}. No changes made.')
+        raise_helper(422, "User", new_role)
 
     set_role = (
-        sa.update(User).where(User.id == uid).values(role=new_role.role)
+        sa.update(User).where(User.id == user_id).values(role=new_role.role)
     )
     await db.execute(set_role)
     await db.commit()
     return {'status': 'success',
-            'message': f'User {uid} successfully changed to {new_role.role}.'}
+            'message': f'User {user_id} successfully changed to {new_role.role}.'}
 
 
 @handle_errors
-async def set_reminder(user_id, reminder_set, db: AsyncSession):
+async def set_reminder(user_id, reminder_value, db: AsyncSession):
     """
     Function to set the reminders on or off for the user.
 
@@ -215,15 +200,13 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
     query = sa.select(User).where(User.id == user_id)
     result = await db.execute(query)
     user = result.scalar()
-    if user.daily_reminder == reminder_set and reminder_set is True:
-        raise HTTPException(status_code=400,
-                            detail='Reminders are already enabled for this user')
-    if user.daily_reminder == reminder_set and reminder_set is False:
-        raise HTTPException(status_code=400,
-                            detail='Reminders are already disabled for this user')
+
+    if user.daily_reminder == reminder_value:
+        status = "enabled" if reminder_value else "disabled"
+        raise_helper(422, "Reminders", status)
 
     reminders_config = (
-        sa.update(User).where(User.id == user_id).values(daily_reminder=reminder_set)
+        sa.update(User).where(User.id == user_id).values(daily_reminder=reminder_value)
     )
     await db.execute(reminders_config)
     await db.commit()
@@ -231,7 +214,7 @@ async def set_reminder(user_id, reminder_set, db: AsyncSession):
 
 
 @handle_errors
-async def send_reminders(timezone, user_role, db: AsyncSession):
+async def crud_send_daily_reminder(timezone, user_role, db: AsyncSession):
     """
     Function to send the reminders to users with this function
 
@@ -239,8 +222,7 @@ async def send_reminders(timezone, user_role, db: AsyncSession):
         Message of the transaction.
     """
     if user_role != 'admin':
-        raise HTTPException(status_code=403,
-                            detail=NOT_AUTHORIZED)
+        raise_helper(401)
     tasks_url = app_url + ":8080/api/v1/tasks/"
     query = sa.select(User.email, func.string_agg(
         'Title: ' + Todo.title + '\nDescription: ' + Todo.description +
@@ -255,13 +237,8 @@ async def send_reminders(timezone, user_role, db: AsyncSession):
     for email, tasks in data:
         to_address = email
         subject = "Subject: Daily Reminder"
-        email_body = (
-            f"Dear User,\n\n"
-            f"This is a daily reminder that there are incomplete tasks, please check them out:\n\n"
-            f"{tasks}\n\n"
-            f"Best regards,\n"
-            f"The Team"
-        )
+        email_body = template.render(tasks=tasks)
+
         send_mail(to_address=to_address, subject=subject, text=email_body)
 
     return {'status': 'success', 'message': 'Reminders were sent.'}
