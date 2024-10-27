@@ -1,0 +1,8 @@
+Dear User,
+
+This is a daily reminder that there are incomplete tasks. Please check them out:
+
+{{ tasks }}
+
+Best regards,
+The Team

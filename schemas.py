@@ -10,13 +10,6 @@ from models import UserRole
 from crypto import hash_password
 
 
-class BasicResponse(BaseModel):
-    """
-    Model for a basic response containing a message.
-    """
-    message: str
-
-
 class ConnectionResponse(BaseModel):
     """
     Model for a connection response containing status and message.
@@ -88,7 +81,7 @@ class UserUpdate(UserBase):
     """
 
 
-class UserRead(BaseModel):
+class UserData(BaseModel):
     """
     Base model for user info.
     """
@@ -100,15 +93,15 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)
 
 
-class UserOutput(BaseModel):
+class UserDataOutput(BaseModel):
     """
     Model for user info with a message.
     """
     message: str
-    user: UserRead
+    user: UserData
 
 
-class Token(BaseModel):
+class AccessToken(BaseModel):
     """
     Model for the access token.
     """
@@ -116,7 +109,7 @@ class Token(BaseModel):
     token_type: str
 
 
-class TokenData(BaseModel):
+class AccessTokenData(BaseModel):
     """
     Model for the data contained within the access token
     """
@@ -138,7 +131,7 @@ class DailyReminder(BaseModel):
     reminder: bool = False
 
 
-class TzInput(BaseModel):
+class TimeZoneInput(BaseModel):
     """
     Model to send the timezone.
     """
