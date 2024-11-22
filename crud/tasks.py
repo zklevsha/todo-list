@@ -4,10 +4,13 @@ Module to handle all CRUD operations related
 to the tasks endpoints.
 """
 import sqlalchemy as sa
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from models import Todo
-from crud.helpers import handle_errors, get_current_time, raise_helper
+from crud.helpers import handle_errors, get_current_time
+
+ERROR_401 = 'You are not authorized to perform this action.'
 
 
 @handle_errors
@@ -59,9 +62,11 @@ async def crud_update_todo(task_id: int, user_id, user_role, todo: dict, db: Asy
     existing_task = result.scalar()
 
     if existing_task is None:
-        raise_helper(404, "Task", task_id)
+        raise HTTPException(status_code=404,
+                            detail=f'Task with ID {task_id} not found.')
     if existing_task.user_id != user_id and user_role != 'admin':
-        raise_helper(401)
+        raise HTTPException(status_code=401,
+                            detail=ERROR_401)
 
     updated_task = (sa.update(Todo).where(Todo.id == task_id).values(**todo))
     await db.execute(updated_task)
@@ -85,7 +90,7 @@ async def crud_get_all_todos(user_id, user_role, db: AsyncSession):
     result = await db.execute(query)
     todos = result.scalars().all()
     if not todos:
-        raise_helper(200)
+        raise HTTPException(status_code=200, detail='The Todo list is empty.')
     formatted_output = [
         {
             "id": todo.id,
@@ -111,9 +116,11 @@ async def crud_delete_todo(task_id, user_id, db: AsyncSession):
     result = await db.execute(query)
     task_to_delete = result.scalar()
     if not task_to_delete:
-        raise_helper(404, "Task", task_id)
+        raise HTTPException(status_code=404,
+                            detail=f'Task with ID {task_id} not found.')
     if task_to_delete.user_id != user_id:
-        raise_helper(401)
+        raise HTTPException(status_code=401,
+                            detail=ERROR_401)
 
     await db.delete(task_to_delete)
     await db.commit()
@@ -132,10 +139,12 @@ async def crud_get_task_by_id(task_id, user_id, user_role, db: AsyncSession):
     result = await db.execute(query)
     todo = result.scalar()
     if todo is None:
-        raise_helper(404, "Task", task_id)
+        raise HTTPException(status_code=404,
+                            detail=f'Task with ID {task_id} not found.')
 
     if todo.user_id != user_id and user_role != 'admin':
-        raise_helper(401)
+        raise HTTPException(status_code=401,
+                            detail=ERROR_401)
 
     formatted_output = [
         {
@@ -162,14 +171,17 @@ async def crud_toggle_task_completion(task_id: int, user_id, user_role,
     result = await db.execute(query)
     todo = result.scalar()
     if todo is None:
-        raise_helper(404, "Task", task_id)
+        raise HTTPException(status_code=404,
+                            detail=f'Task with ID {task_id} not found.')
 
     if todo.is_finished == is_finished:
         status = "completed" if is_finished else "pending"
-        raise_helper(422, "Task", status)
+        raise HTTPException(status_code=422,
+                            detail=f'Task already set to {status}. No changes made.')
 
     if todo.user_id != user_id and user_role != 'admin':
-        raise_helper(401)
+        raise HTTPException(status_code=401,
+                            detail=ERROR_401)
 
     completed_task = (
         sa.update(Todo).where(Todo.id == task_id).values(is_finished=is_finished)
