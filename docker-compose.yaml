@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  postgres:
+  main_db:
     image: postgres:13-bullseye
     restart: always
     pull_policy: always
@@ -13,20 +13,53 @@ services:
       POSTGRES_PASSWORD: ${db_password}
       POSTGRES_USER: ${db_user}
       POSTGRES_DB: ${db_database}
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${db_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  postgres-test:
+  test_db:
     image: postgres:13-bullseye
     restart: always
     pull_policy: always
     ports:
-      - 5433:5432
+      - 5433:5433
     volumes:
       - test_pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${test_db_password}
       POSTGRES_USER: ${test_db_user}
       POSTGRES_DB: ${test_db_database}
+      PGPORT: 5433
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${test_db_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: ./todo-list-app/Dockerfile
+    depends_on:
+      main_db:
+        condition: service_healthy
+      test_db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+     - app_network
 
 volumes:
   pgdata:
   test_pgdata:
+
+
+networks:
+  app_network:

@@ -1,13 +1,14 @@
 # FastAPI To-Do Application
 
 A simple To-Do list application built with FastAPI, allowing users to create, read, update, and delete tasks.
+Running on a docker container.
 
 ## Requirements
 
-* Python 3.11
-* Python 3.11 devel package (python3.11-devel for Fedora-based distros, python3.11-dev Debian-based)
-* Poetry (python-poetry) for managing dependencies
+* Docker
 * Docker-compose
+* Python 3.11
+* Poetry (python-poetry)
 
 ## Features
 
@@ -20,32 +21,14 @@ A simple To-Do list application built with FastAPI, allowing users to create, re
 
 ## Setup
 
-### Step 1: Create and activate the Virtual Environment
+### Step 1: Configure ENV variables
 
-To create and enter the virtual environment, run:
-```bash
-poetry shell
-```
-
-### Step 2: Install the dependencies
-Install the dependencies:
+Create a file ".env" (in the project's root directory, not inside "todo-list-app") with the following variables:
 
 ```bash
-poetry install
-```
-If you don't want to install the "dev" dependencies, run:
-```bash
-poetry install --only main
-```
+app_url=URL (Optional) # The app's domain, defaults to localhost
 
-### Step 3: Configure ENV variables
-
-Create a file ".env" with the following variables:
-
-```bash
-app_url=URL (Optional) # The app domain, defaults to localhost
-
-db_host=HOST
+db_host=HOST (Optional) # Defaults to localhost
 db_database=DATABASE
 db_user=DB_USER
 db_password=USER_PASSWORD
@@ -57,7 +40,7 @@ test_db_password=TEST_USER_PASSWORD
 admin_username=ADMIN_USERNAME (Optional)
 admin_email=ADMIN_USER_EMAIL (Optional)
 admin_password=ADMIN_USER_PASSWORD (Optional)  
-secret_key = "random string"
+secret_key = "random string" (Optional) 
 
 mail_from_address=FROM_ADDRESS # Sender address from Mailtrap
 mail_token=TOKEN # Mailtrap API Token
@@ -66,30 +49,16 @@ A test database will be created as well. If admin username, email and password a
 ```bash
 openssl rand -hex 32  
 ```
+Otherwise, a random string will be generated.
 
-### Step 4: Start the PostgreSQL container
+### Step 2: Start the containers
 
-Start the docker container and wait for the migration to conclude:
+Start the containers by running:
 
 ```bash
 docker-compose up -d
 ```
-
-### Step 5: Apply Database Migrations (Alembic)
-
-Run the migration command:
-
-```bash
-alembic upgrade head
-```
-
-### Step 6: Run the Application
-
-Run the FastAPI application using Uvicorn:
-
-```bash
-uvicorn app:app --reload
-```
+After the databases are up, the app will be started. The app is accessible on port 8000.
 
 
 ### Endpoints
@@ -190,7 +159,7 @@ Unit tests were added to the project. Also, linter checks might be performed by 
 
 ### Running Tests
 
-We use `pytest` for running tests. To run the tests, follow these steps:
+We use `pytest` for running tests. To run the tests, follow these steps (inside the todo-list-app directory):
 
 1.  **Install dependencies**:
 
@@ -207,7 +176,7 @@ poetry run pytest -v
 
 ### Running Linter Checks
 
-To run linter checks, follow these steps:
+To run linter checks, follow these steps (inside the todo-list-app directory)::
 
 1.  **Install dependencies**:
 
