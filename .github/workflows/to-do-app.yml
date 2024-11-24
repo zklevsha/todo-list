@@ -47,7 +47,9 @@ jobs:
     - name: Install Dependencies      
       working-directory: ./todo-list-app
       run: poetry install
+      
     - name: Lint with pylint
+      working-directory: ./todo-list-app
       run: poetry run pylint *.py **/*.py
         
     - name: Running alembic migrations
