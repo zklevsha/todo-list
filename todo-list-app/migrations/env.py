@@ -62,11 +62,13 @@ async def run_migrations_online():
     )
 
     for connectable in [connectable_main, connectable_test]:
-        async with connectable.connect() as connection:
-            print(test_connection_string, connection_string)
-            await connection.run_sync(do_run_migrations)
-
-        await connectable.dispose()
+        try:
+            async with connectable.connect() as connection:
+                await connection.run_sync(do_run_migrations)
+        except Exception as e:
+            print(f"Failed to run migrations for {connectable.url}: {e}")
+        finally:
+            await connectable.dispose()
 
 
 if context.is_offline_mode():
