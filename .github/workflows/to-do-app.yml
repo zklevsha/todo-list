@@ -47,21 +47,9 @@ jobs:
     - name: Install Dependencies      
       run: |
         cd todo-list-app/
-        poetry shell
         poetry install
     - name: Lint with pylint
       run: poetry run pylint *.py **/*.py
-      
-    - name: Ensuring the db is ready
-      run: |
-        for i in {1..10}; do
-          if docker exec -it pg_test_db pg_isready; thenc
-            echo "Database is ready!"
-            break
-          fi
-          echo "Waiting for database to be ready..."
-          sleep 3
-        done
         
     - name: Running alembic migrations
       run: alembic upgrade head 
