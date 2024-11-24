@@ -63,6 +63,7 @@ async def run_migrations_online():
 
     for connectable in [connectable_main, connectable_test]:
         async with connectable.connect() as connection:
+            print(test_connection_string, connection_string)
             await connection.run_sync(do_run_migrations)
 
         await connectable.dispose()
