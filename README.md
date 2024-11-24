@@ -28,7 +28,7 @@ Create a file ".env" (in the project's root directory, not inside "todo-list-app
 ```bash
 app_url=URL (Optional) # The app's domain, defaults to localhost
 
-db_host=HOST (Optional) # Defaults to localhost
+db_host=HOST (Optional) # Defaults to localhost 
 db_database=DATABASE
 db_user=DB_USER
 db_password=USER_PASSWORD
