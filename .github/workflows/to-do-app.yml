@@ -45,14 +45,16 @@ jobs:
       with:
           poetry-version: "latest"
     - name: Install Dependencies      
-      run: |
-        cd todo-list-app/
-        poetry install
+      working-directory: ./todo-list-app
+      run: poetry install
     - name: Lint with pylint
       run: poetry run pylint *.py **/*.py
         
     - name: Running alembic migrations
+      working-directory: ./todo-list-app
       run: alembic upgrade head 
+      
     - name: Test with pytest
+      working-directory: ./todo-list-app
       run: poetry run pytest -v
         
