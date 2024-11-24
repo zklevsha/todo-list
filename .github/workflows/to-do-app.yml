@@ -54,7 +54,7 @@ jobs:
         
     - name: Running alembic migrations
       working-directory: ./todo-list-app
-      run: alembic upgrade head 
+      run: poetry run alembic upgrade head 
       
     - name: Test with pytest
       working-directory: ./todo-list-app
