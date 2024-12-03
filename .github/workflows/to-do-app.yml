@@ -4,8 +4,6 @@
 name: To-do application
 
 on:
-  push:
-    branches: [ "main", "daily_reminders" ]
   pull_request:
     branches: [ "main" ]
 
@@ -21,9 +19,9 @@ jobs:
       test_db:
         image: postgres:13-bullseye
         env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'test_user' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test_password' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'test_db' }}
           PGPORT: 5433
         options: >- 
           --health-cmd pg_isready
@@ -55,8 +53,14 @@ jobs:
     - name: Running alembic migrations
       working-directory: ./todo-list-app
       run: poetry run alembic upgrade head 
+
+    - name: Getting .env file from secrets
+      env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+      working-directory: ./todo-list-app
+      if: env.ENV_FILE != null
+      run: echo "${{ env.ENV_FILE }}" | tr ' ' '\n' > .env
       
     - name: Test with pytest
       working-directory: ./todo-list-app
       run: poetry run pytest -v
-        
