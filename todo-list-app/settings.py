@@ -33,4 +33,3 @@ SECRET_KEY = config.get('secret_key') or generate_random_string(50)
 
 mail_from_address = config.get('mail_from_address')
 mail_token = config.get('mail_token')
-
