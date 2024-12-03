@@ -28,7 +28,6 @@ Create a file ".env" (in the project's root directory, not inside "todo-list-app
 ```bash
 app_url=URL (Optional) # The app's domain, defaults to localhost
 
-db_host=HOST (Optional) # Defaults to localhost
 db_database=DATABASE
 db_user=DB_USER
 db_password=USER_PASSWORD
@@ -40,7 +39,7 @@ test_db_password=TEST_USER_PASSWORD
 admin_username=ADMIN_USERNAME (Optional)
 admin_email=ADMIN_USER_EMAIL (Optional)
 admin_password=ADMIN_USER_PASSWORD (Optional)  
-secret_key = "random string" (Optional) 
+secret_key="random string" (Optional) 
 
 mail_from_address=FROM_ADDRESS # Sender address from Mailtrap
 mail_token=TOKEN # Mailtrap API Token 
