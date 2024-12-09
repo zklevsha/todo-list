@@ -8,7 +8,8 @@ from crypto import hash_password, generate_random_string
 
 config = dotenv_values(".env") or dotenv_values("../.env")
 app_url = config.get('app_url') or 'localhost'
-app_url = f'http://{app_url}'
+APP_PORT = 8000
+app_url = f'http://{app_url}:{APP_PORT}'
 
 HOST = 'localhost'
 database = config.get('db_database')

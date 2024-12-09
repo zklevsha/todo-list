@@ -11,7 +11,7 @@ from settings import app_url
 from scheduler.helpers import get_timezones_list, reminders_disabled_timezone
 
 ADMIN_TOKEN = create_access_token(data={"user_id": 1, "user_role": "admin"})
-URL = f"{app_url}:8000/api/v1/users/send_reminders"
+URL = f"{app_url}/api/v1/users/send_reminders"
 HEADERS = {
     "Authorization": f"Bearer {ADMIN_TOKEN}"
 }
