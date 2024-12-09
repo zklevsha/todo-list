@@ -1,7 +1,7 @@
-# FastAPI To-Do Application
+# FastAPI To-Do Application with Automated Deployment
 
 A simple To-Do list application built with FastAPI, allowing users to create, read, update, and delete tasks.
-Running on a docker container.
+Running on docker containers. Deployment is automated via Github Actions.
 
 ## Requirements
 
@@ -189,3 +189,40 @@ poetry install --with dev
 ```bash
 poetry run pylint *.py **/*.py
 ```
+
+## Automation with GitHub Actions
+
+This project leverages GitHub Actions to automate the deployment process of the application. Below is a step-by-step overview of the workflow:
+1. **Setup Testing Database:** A PostgreSQL service is initialized for running tests.
+2. **Code Quality and Testing:** Linter checks and pytest are executed to ensure code quality and functionality.
+3. **VPN Connection (Optional):** The runner connects to a VPN if required for accessing the infrastructure.
+4. **Access Remote Infrastructure:** The deployment targets an OpenNebula environment.
+5. **Instance Deployment:** Terraform provisions a new virtual machine (VM) instance.
+6. **Application Deployment:** Ansible configures the VM and deploys the application.
+
+## Requirements
+
+To use this workflow, ensure the following prerequisites are met:
+
+- **OpenNebula Access:** A configured OpenNebula instance to provision VMs.
+- **VPN Access (Optional):** If VPN is required, OpenConnect must be used to generate a session cookie.
+- **VM Template:** A Debian 12-based VM template in OpenNebula, including an additional unformatted drive mounted as /dev/sdb (optional for disk preparation).
+- **Secrets and Variables Configuration:** Required secrets and variables should be configured in GitHub Actions.
+
+### Secrets and Variables
+The following secrets must be set in your GitHub repository:
+
+- `ENV_FILE`: The contents of the .env file as outlined in the project setup.
+- `POSTGRES_DB`: Database name for testing.
+- `POSTGRES_PASSWORD`: Password for the testing database user.
+- `POSTGRES_USER`: User for the testing database.
+- `SSH_PRIVATE_KEY`: Private SSH key for connecting to deployed servers (matches the public key in the VM template context).
+- `TERRAFORM_VARIABLES`: The full contents of the terraform.tfvars file for Terraform configuration.
+- `VPN_SERVER`: Hostname of the VPN server.
+
+Variables
+
+The following variables control optional steps in the workflow:
+
+- `VPN_REQUIRED`: Set to true or false to enable or skip VPN connection steps.
+- `FORMAT_AND_MOUNT_DISKS`: Set to true or false to enable or skip disk preparation on the deployed VM.

@@ -251,9 +251,12 @@ async def crud_send_daily_reminder(timezone, user_role, db: AsyncSession):
     # https://github.com/pylint-dev/pylint/issues/8138#issuecomment-2210372652
     result = await db.execute(query)
     data = result.fetchall()
+    email_list = []
 
     for email, raw_tasks in data:
         email_body = render_body(raw_tasks)
         send_mail(to_address=email, subject="Daily Reminder", text=email_body)
+        email_list.append(email)
 
-    return {'status': 'success', 'message': 'Reminders were sent.'}
+    return {'status': 'success',
+            'message': f'Reminders were sent to the following emails: {email_list}'}

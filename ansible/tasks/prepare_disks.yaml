@@ -1,0 +1,99 @@
+    - name: Read device information
+      parted: device=/dev/sdb unit=MiB
+      register: sdb_info
+
+    - name: Create partitions if none exist
+      block:
+        - name: Create home partition
+          parted:
+            device: /dev/sdb
+            number: 1
+            state: present
+            fs_type: ext4
+            part_start: "0%"
+            part_end: "50%"
+
+        - name: Create a ext4 filesystem on /dev/sdb1
+          filesystem:
+            fstype: ext4
+            dev: /dev/sdb1
+
+        - name: Create var partition
+          community.general.parted:
+            device: /dev/sdb
+            number: 2
+            state: present
+            part_start: "51%"
+            part_end: "75%"
+
+        - name: Create a ext4 filesystem on /dev/sdb2
+          filesystem:
+            fstype: ext4
+            dev: /dev/sdb2
+
+        - name: Create usr partition
+          community.general.parted:
+            device: /dev/sdb
+            number: 3
+            state: present
+            fs_type: ext4
+            part_start: "76%"
+            part_end: "100%"
+
+        - name: Create a ext4 filesystem on /dev/sdb3
+          filesystem:
+            fstype: ext4
+            dev: /dev/sdb3
+
+      when: sdb_info.partitions | length == 0
+
+    - name: Mount /dev/sdb1
+      mount:
+        path: /home
+        src: /dev/sdb1
+        fstype: ext4
+        opts: defaults
+        state: mounted
+
+    - name: Create a temporary mount point for /dev/sdb2
+      file:
+        path: /mnt/temp_sdb2
+        state: directory
+    - name: Temporarily mount /dev/sdb2 to /mnt/temp_sdb2
+      mount:
+        path: /mnt/temp_sdb2
+        src: /dev/sdb2
+        fstype: ext4
+        opts: defaults
+        state: ephemeral
+    - name: Sync existing content to /dev/sdc
+      command: rsync -a --ignore-missing-args /var/ /mnt/temp_sdb2/
+    - name: Mount /dev/sdb2
+      mount:
+        path: /var
+        src: /dev/sdb2
+        fstype: ext4
+        opts: defaults
+        state: mounted
+
+    - name: Create a temporary mount point for /dev/sdb3
+      file:
+        path: /mnt/temp_sdb3
+        state: directory
+    - name: Temporarily mount /dev/sdb3 to /mnt/temp_sdb3
+      mount:
+        path: /mnt/temp_sdb3
+        src: /dev/sdb3
+        fstype: ext4
+        opts: defaults
+        state: ephemeral
+    - name: Sync existing content to /dev/sdb3
+      command: rsync -a --ignore-missing-args /usr/ /mnt/temp_sdb3/
+    - name: Mount /dev/sdb3
+      mount:
+        path: /usr
+        src: /dev/sdb3
+        fstype: ext4
+        opts: defaults
+        state: mounted  
+

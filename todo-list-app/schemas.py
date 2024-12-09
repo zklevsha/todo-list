@@ -89,6 +89,7 @@ class UserData(BaseModel):
     username: str
     email: EmailStr
     role: UserRole
+    daily_reminder: bool
 
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)
 
@@ -136,3 +137,12 @@ class TimeZoneInput(BaseModel):
     Model to send the timezone.
     """
     timezone: str
+
+    @field_validator('timezone')
+    def validate_timezone(cls, value): # pylint: disable=E0213 #"cls" already fulfills that role
+        """
+        Validate the timezone.
+        """
+        if value not in pytz.all_timezones:
+            raise ValueError(f"Invalid timezone: {value}")
+        return value

@@ -12,7 +12,7 @@ from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from settings import mail_token, mail_from_address, app_url
 
-tasks_url = app_url + ":8080/api/v1/tasks/"
+tasks_url = app_url + "/api/v1/tasks/"
 env = Environment(loader=FileSystemLoader(
     searchpath=os.path.join(os.path.dirname(__file__), '..', 'templates')))
 template = env.get_template('email.template')
@@ -52,17 +52,17 @@ def handle_errors(func):
         try:
             return await func(*args, db=db, **kwargs)
         except SQLAlchemyError as error:
-            logging.error("SQLAlchemyError occurred: %s", error)
+            logging.error("SQLAlchemyError occurred: %s", error, exc_info=True)
             raise HTTPException(
                 status_code=500,
-                detail='An internal server error occurred. Please try again later.'
+                detail='An internal database-related error occurred. Please try again later.'
             ) from error
         except HTTPException:
             # Raise the HTTPExceptions to avoid them for being
             # overwritten by the general Exception block
             raise
         except Exception as error:
-            logging.error("An unexpected error occurred: %s", error)
+            logging.error("An unexpected error occurred: %s", error, exc_info=True)
             raise HTTPException(
                 status_code=500,
                 detail='An internal server error occurred. Please try again later.'
