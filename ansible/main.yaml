@@ -1,0 +1,53 @@
+---
+- name: Setting todo-list-app on remote server
+  hosts: servers
+  vars:
+    format_and_mount_disks: true
+  tasks:
+    - name: Waiting for updates to finish if needed
+      shell: ps faux|grep "apt upgrade"|grep -v grep
+      register: update_status
+      until: update_status.rc != 0
+      retries: 50
+      delay: 5
+      ignore_errors: true
+
+    - name: Including disk formatting and mounting tasks if enabled
+      include_tasks: tasks/prepare_disks.yaml
+      when: format_and_mount_disks
+
+    - name: Creating user 'app'
+      user:
+        name: app
+        create_home: yes
+
+    - name: Installing Docker
+      include_role:
+        name: geerlingguy.docker
+      vars:
+          docker_install_compose_plugin: true
+          docker_compose_package: docker-compose-plugin
+          docker_compose_package_state: present
+          docker_users: 
+            - app
+
+    - name: Copying application files
+      copy:
+        src: "{{ item.src }}"
+        dest: /home/app/
+        owner: app
+        group: app
+        mode: "{{ item.mode }}"
+      loop:
+        - { src: "../todo-list-app", mode: '0755' }
+        - { src: "../docker-compose.yaml", mode: '0644' }
+        - { src: "../.env", mode: '0644' }
+
+    - name: Running docker-compose up
+      become_user: app
+      community.docker.docker_compose_v2:
+        project_src: /home/app
+        env_files: .env
+        state: present
+        pull: always
+        recreate: auto
