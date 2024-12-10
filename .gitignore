@@ -5,3 +5,4 @@ todo_list
 .idea
 *.tfvars
 *inventory
+*ansible_key
