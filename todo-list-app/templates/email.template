@@ -1,0 +1,13 @@
+Dear User,
+
+This is a daily reminder that there are incomplete tasks. Please check them out:
+
+{% for task in tasks %}
+Title: {{ task.title }}
+Description: {{ task.description }}
+Link: {{ task.link }}
+
+{% endfor %}
+
+Best regards,
+The Team
