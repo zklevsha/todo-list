@@ -164,14 +164,17 @@ async def crud_get_all_users(user_role, db: AsyncSession):
     users = result.scalars().all()
     formatted_output = [
         {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "role": user.role,
-            "creation_date": user.creation_date
+            "User ID": user.id,
+            "Username": user.username,
+            "Email": user.email,
+            "Role": user.role,
+            "Creation date": user.creation_date,
+            "Timezone": user.timezone,
+            "Reminders enabled": user.daily_reminder
         }
         for user in users
     ]
+
     return formatted_output
 
 
