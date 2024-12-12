@@ -210,6 +210,8 @@ To use this workflow, ensure the following prerequisites are met:
 - **Secrets and Variables Configuration:** Required secrets and variables should be configured in GitHub Actions.
 
 ### Secrets and Variables
+
+#### Secrets
 The following secrets must be set in your GitHub repository:
 
 - `ENV_FILE`: The contents of the .env file as outlined in the project setup.
@@ -220,7 +222,17 @@ The following secrets must be set in your GitHub repository:
 - `TERRAFORM_VARIABLES`: The full contents of the terraform.tfvars file for Terraform configuration.
 - `VPN_SERVER`: Hostname of the VPN server.
 
-Variables
+Sample terraform.tfvars file:
+```bash
+endpoint      = "http://example.com:2633/RPC2"
+flow_endpoint = "http://example.com"
+username      = "user"
+password      = "password"
+template_id   = 1234
+op_group      = "group-1"
+```
+
+#### Variables
 
 The following variables control optional steps in the workflow:
 
