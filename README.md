@@ -206,8 +206,8 @@ To use this workflow, ensure the following prerequisites are met:
 
 - **OpenNebula Access:** A configured OpenNebula instance to provision VMs.
 - **VPN Access (Optional):** If VPN is required, OpenConnect must be used to generate a session cookie.
-- **VM Template:** A Debian 12-based VM template in OpenNebula, including an additional unformatted drive mounted as /dev/sdb (optional for disk preparation).
-- **Secrets and Variables Configuration:** Required secrets and variables should be configured in GitHub Actions.
+- **VM Template:** A Debian 12-based VM template in OpenNebula (it should also work on RHEL 9-based systems).
+- **Secrets and Variables Configuration:** Required secrets and variables should be configured in the "Actions secrets and variables" section.
 
 ### Secrets and Variables
 
@@ -225,7 +225,6 @@ The following secrets must be set in your GitHub repository:
 Sample terraform.tfvars file:
 ```bash
 endpoint      = "http://example.com:2633/RPC2"
-flow_endpoint = "http://example.com"
 username      = "user"
 password      = "password"
 template_id   = 1234
@@ -237,4 +236,3 @@ op_group      = "group-1"
 The following variables control optional steps in the workflow:
 
 - `VPN_REQUIRED`: Set to true or false to enable or skip VPN connection steps.
-- `FORMAT_AND_MOUNT_DISKS`: Set to true or false to enable or skip disk preparation on the deployed VM.

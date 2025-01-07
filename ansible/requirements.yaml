@@ -1,3 +1,0 @@
-# Install docker role from GitHub
-- name: geerlingguy.docker
-  src: https://github.com/geerlingguy/ansible-role-docker

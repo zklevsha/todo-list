@@ -245,7 +245,7 @@ async def crud_send_daily_reminder(timezone, user_role, db: AsyncSession):
         raise HTTPException(status_code=401,
                             detail=ERROR_401)
     query = sa.select(User.email, func.aggregate_strings(  # pylint: disable=E1102
-        Todo.title + ' ' + Todo.description + ' ' + cast(Todo.id, String), ',').
+        Todo.title + '^]' + Todo.description + '^]' + cast(Todo.id, String), ',').
                       label('concatenated_todos')).\
         join(Todo, Todo.user_id == User.id).where(
         User.daily_reminder.is_(True), Todo.is_finished.is_(False),

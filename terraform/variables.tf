@@ -3,11 +3,6 @@ variable "endpoint" {
   type        = string
 }
 
-variable "flow_endpoint" {
-  description = "OpenNebula flow endpoint"
-  type        = string
-}
-
 variable "username" {
   description = "Username for OpenNebula"
   type        = string

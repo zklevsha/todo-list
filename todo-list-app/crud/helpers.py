@@ -25,7 +25,7 @@ def render_body(raw_tasks):
     """
     tasks_dict = []
     for task_data in raw_tasks.split(","):
-        sections = task_data.split(" ")
+        sections = task_data.split("^]")
         tasks_dict.append({
             "title": sections[0],
             "description": sections[1],

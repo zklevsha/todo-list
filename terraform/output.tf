@@ -14,3 +14,4 @@ ansible_user = "root"
 ansible_ssh_extra_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 EOT
 }
+
