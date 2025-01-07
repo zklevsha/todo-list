@@ -4,6 +4,8 @@
 name: To-do application
 
 on:
+  #push:
+  #  branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -105,10 +107,10 @@ jobs:
         terraform destroy --auto-approve
         terraform plan -no-color
       continue-on-error: true
-    
+
     - name: Terraform Apply
       working-directory: ./terraform
-      run: terraform apply --auto-approve 
+      run: terraform apply --auto-approve
 
     - name: Setting up ansible
       working-directory: ./ansible
@@ -132,9 +134,15 @@ jobs:
           echo "Unable to connect this time"
           sleep 10
         done
-        
+
+    - name: Set variables for repo URL and branch
+      run: |
+        echo "REPO_URL=https://github.com/${{ github.repository }}.git" >> $GITHUB_ENV
+        echo "GITHUB_REF=${{ github.ref }}" >> $GITHUB_ENV
+        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
     - name: Running playbook
       working-directory: ./ansible
       run: |
         ansible-galaxy install -r ./requirements.yaml
-        ansible-playbook main.yaml --inventory inventory --extra-vars format_and_mount_disks=${{ vars.FORMAT_AND_MOUNT_DISKS }} --extra-vars ansible_ssh_private_key_file=ansible_key
+        ansible-playbook deploy.yml --inventory inventory --extra-vars ansible_ssh_private_key_file=ansible_key
