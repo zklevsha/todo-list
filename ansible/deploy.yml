@@ -1,0 +1,19 @@
+---
+- name: Setting todo-list-app on remote server
+  hosts: servers
+  tasks:
+    - name: Waiting for updates to finish if needed
+      shell: ps faux|grep "apt upgrade"|grep -v grep
+      register: update_status
+      until: update_status.rc != 0
+      retries: 50
+      delay: 5
+      ignore_errors: true
+      tags:
+        - system-check
+
+    - name: Deploying the todo-list application
+      include_role:
+        name: app
+      tags:
+        - deploy

@@ -1,0 +1,55 @@
+    - name: Creating user 'app'
+      user:
+        name: app
+        create_home: yes
+
+    - name: Installing Docker
+      include_role:
+        name: geerlingguy.docker
+      vars:
+          docker_install_compose_plugin: true
+          docker_compose_package: docker-compose-plugin
+          docker_compose_package_state: present
+          docker_users:
+            - app
+
+    - name: Cloning repo
+      git:
+        repo: "{{ lookup('env', 'REPO_URL') }}"
+        dest: /tmp/git_repo
+        single_branch: yes
+        version: "{{ lookup('env', 'BRANCH_NAME') }}"
+
+    - name: Copying application files
+      copy:
+        src: "{{ item.src }}"
+        dest: /home/app/
+        owner: app
+        group: app
+        mode: "{{ item.mode }}"
+        remote_src: yes
+      loop:
+        - { src: "/tmp/git_repo/todo-list-app", mode: '0755' }
+        - { src: "/tmp/git_repo/docker-compose.yml", mode: '0644' }
+
+    - name: Copying env file
+      copy:
+        src: "../.env"
+        owner: app
+        group: app
+        dest: /home/app/
+        mode: "0644"
+
+    - name: Remove the temporary repository clone
+      file:
+        path: /tmp/git_repo
+        state: absent
+
+    - name: Running docker-compose up
+      become_user: app
+      community.docker.docker_compose_v2:
+        project_src: /home/app
+        env_files: .env
+        state: present
+        pull: always
+        recreate: auto
